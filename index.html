@@ -85,6 +85,17 @@
             </label>
           </div>
 
+          <div id="diffComparePanel" class="compare-panel" hidden>
+            <label class="editor-panel" for="diffBeforeArea">
+              <span class="panel-title">Before</span>
+              <textarea id="diffBeforeArea" spellcheck="false" placeholder="比較元のテキストを貼り付けてください"></textarea>
+            </label>
+            <label class="editor-panel" for="diffAfterArea">
+              <span class="panel-title">After</span>
+              <textarea id="diffAfterArea" spellcheck="false" placeholder="比較先のテキストを貼り付けてください"></textarea>
+            </label>
+          </div>
+
           <div class="editor-grid">
             <label class="editor-panel" for="inputArea">
               <span class="panel-title">Input</span>
@@ -133,7 +144,7 @@
             </article>
             <article class="tool-card">
               <h3>Diff Viewer</h3>
-              <p>追加・削除・チャンク・ファイルヘッダを分類し、差分サマリーを表示します。</p>
+              <p>Before/Afterの比較、またはdiff形式の追加・削除行を分かりやすく表示します。</p>
             </article>
             <article class="tool-card">
               <h3>Text Formatter</h3>

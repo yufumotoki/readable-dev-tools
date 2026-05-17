@@ -1,5 +1,6 @@
 import { detectType } from "./detector.js";
 import { runTool } from "./router.js";
+import { compareTextDiff } from "./tools/diffViewer.js";
 
 const inputArea = document.getElementById("inputArea");
 const outputArea = document.getElementById("outputArea");
@@ -13,6 +14,9 @@ const logFilterPanel = document.getElementById("logFilterPanel");
 const logLevelFilter = document.getElementById("logLevelFilter");
 const logKeywordFilter = document.getElementById("logKeywordFilter");
 const logCaseSensitive = document.getElementById("logCaseSensitive");
+const diffComparePanel = document.getElementById("diffComparePanel");
+const diffBeforeArea = document.getElementById("diffBeforeArea");
+const diffAfterArea = document.getElementById("diffAfterArea");
 
 let copyStatusTimer;
 
@@ -44,10 +48,25 @@ export function processInput() {
   };
 
   detectedType.textContent = formatTypeLabel(type);
-  outputArea.value = runTool(type, input, options);
+
+  if (
+    type === "diff" &&
+    toolSelect.value === "diff" &&
+    diffBeforeArea &&
+    diffAfterArea &&
+    (diffBeforeArea.value || diffAfterArea.value)
+  ) {
+    outputArea.value = compareTextDiff(diffBeforeArea.value, diffAfterArea.value);
+  } else {
+    outputArea.value = runTool(type, input, options);
+  }
 
   if (logFilterPanel) {
     logFilterPanel.hidden = type !== "log";
+  }
+
+  if (diffComparePanel) {
+    diffComparePanel.hidden = type !== "diff";
   }
 }
 
@@ -93,6 +112,12 @@ formatButton.addEventListener("click", processInput);
 clearButton.addEventListener("click", () => {
   inputArea.value = "";
   outputArea.value = "";
+  if (diffBeforeArea) {
+    diffBeforeArea.value = "";
+  }
+  if (diffAfterArea) {
+    diffAfterArea.value = "";
+  }
   if (logLevelFilter) {
     logLevelFilter.value = "all";
   }
@@ -116,6 +141,12 @@ if (logKeywordFilter) {
 }
 if (logCaseSensitive) {
   logCaseSensitive.addEventListener("change", processInput);
+}
+if (diffBeforeArea) {
+  diffBeforeArea.addEventListener("input", processInput);
+}
+if (diffAfterArea) {
+  diffAfterArea.addEventListener("input", processInput);
 }
 
 processInput();
