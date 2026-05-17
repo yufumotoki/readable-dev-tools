@@ -41,10 +41,6 @@ function extractRequestIds(text) {
   return [...ids];
 }
 
-function hasLevelPrefix(line) {
-  return /^\[(ERROR|WARN|INFO|DEBUG)\]\s/i.test(stripAnsi(line));
-}
-
 function detectLevel(line) {
   const clean = stripAnsi(line);
   const prefixed = clean.match(/^\[(ERROR|WARN|INFO|DEBUG)\]\s/i);
@@ -175,7 +171,7 @@ function formatLogLine(line, index) {
   }
 
   if (/^at\s+/.test(trimmed)) {
-    return `  ↳ ${trimmed}`;
+    return `  \u21b3 ${trimmed}`;
   }
 
   const prefix = index === 0 ? getLevelPrefix(trimmed) : "";
@@ -186,13 +182,20 @@ export function formatLog(input, options = {}) {
   const entries = groupLogEntries(input);
   const contextLines = Math.max(Number(options.contextLines || 0), 0);
   const included = new Set();
+  const matchedErrors = new Set();
 
   entries.forEach((entry, index) => {
     if (shouldIncludeEntry(entry, options)) {
       included.add(index);
-    }
 
-    if (contextLines > 0 && detectLevel(entry[0] || entry.join("\n")) === "ERROR") {
+      if (detectLevel(entry[0] || entry.join("\n")) === "ERROR") {
+        matchedErrors.add(index);
+      }
+    }
+  });
+
+  if (contextLines > 0) {
+    matchedErrors.forEach((index) => {
       for (let offset = -contextLines; offset <= contextLines; offset += 1) {
         const contextIndex = index + offset;
 
@@ -200,8 +203,8 @@ export function formatLog(input, options = {}) {
           included.add(contextIndex);
         }
       }
-    }
-  });
+    });
+  }
 
   const selectedEntries = entries.filter((entry, index) => included.has(index));
   const requestIds = extractRequestIds(selectedEntries.flat().join("\n"));

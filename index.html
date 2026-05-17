@@ -20,12 +20,19 @@
           <h1 data-i18n="heroTitle">Paste it. Make it readable.</h1>
           <p class="lead" data-i18n="heroLead">No data leaves your browser. Everything is processed locally.</p>
         </div>
+        <label class="language-picker" for="languageSelect">
+          <span data-i18n="languageLabel">Language</span>
+          <select id="languageSelect" aria-label="Language">
+            <option value="en" data-i18n-option="languageEnglish">English</option>
+            <option value="ja" data-i18n-option="languageJapanese">&#26085;&#26412;&#35486;</option>
+          </select>
+        </label>
       </header>
 
       <main>
         <section class="security-panel" aria-labelledby="security-title">
           <div class="security-heading">
-            <h2 id="security-title">No data leaves your browser.</h2>
+            <h2 id="security-title" data-i18n="securityTitle">No data leaves your browser.</h2>
             <p data-i18n="securityText">Your input is never sent to a server and is processed only in browser memory.</p>
           </div>
           <div class="badge-grid" aria-label="Security properties">
@@ -40,50 +47,43 @@
         <section class="workspace" aria-label="Formatter workspace">
           <div class="toolbar">
             <div class="detected">
-              <span>Detected:</span>
+              <span data-i18n="detectedLabel">Detected:</span>
               <strong id="detectedType">Empty</strong>
             </div>
             <label class="tool-picker" for="toolSelect">
-              <span>Tool</span>
+              <span data-i18n="toolLabel">Tool</span>
               <select id="toolSelect">
-                <option value="auto">Auto</option>
-                <option value="json">JSON Formatter</option>
-                <option value="log">Log Formatter</option>
-                <option value="code">Code Refactor</option>
-                <option value="stack">Stack Trace Formatter</option>
-                <option value="minify">Minify Beautifier</option>
-                <option value="diff">Diff Viewer</option>
-                <option value="text">Text Formatter</option>
-              </select>
-            </label>
-            <label class="tool-picker compact-picker" for="languageSelect">
-              <span>Language</span>
-              <select id="languageSelect">
-                <option value="en">English</option>
-                <option value="ja">日本語</option>
+                <option value="auto" data-i18n-option="toolAuto">Auto</option>
+                <option value="json" data-i18n-option="toolJson">JSON Formatter</option>
+                <option value="log" data-i18n-option="toolLog">Log Formatter</option>
+                <option value="code" data-i18n-option="toolCode">Code Refactor</option>
+                <option value="stack" data-i18n-option="toolStack">Stack Trace Formatter</option>
+                <option value="minify" data-i18n-option="toolMinify">Minify Beautifier</option>
+                <option value="diff" data-i18n-option="toolDiff">Diff Viewer</option>
+                <option value="text" data-i18n-option="toolText">Text Formatter</option>
               </select>
             </label>
             <div class="actions" aria-label="Actions">
-              <button id="sampleButton" type="button" class="secondary">Sample</button>
-              <button id="formatButton" type="button">Format / Refactor</button>
-              <button id="clearButton" type="button" class="secondary">Clear</button>
-              <button id="copyButton" type="button" class="secondary">Copy Output</button>
+              <button id="sampleButton" type="button" class="secondary" data-i18n="sampleButton">Sample</button>
+              <button id="formatButton" type="button" data-i18n="formatButton">Format / Refactor</button>
+              <button id="clearButton" type="button" class="secondary" data-i18n="clearButton">Clear</button>
+              <button id="copyButton" type="button" class="secondary" data-i18n="copyButton">Copy Output</button>
               <span id="copyStatus" class="copy-status" aria-live="polite"></span>
             </div>
           </div>
 
           <div id="jsonOptionsPanel" class="filter-panel" hidden>
             <label for="jsonPathInput">
-              <span>JSON Path</span>
+              <span data-i18n="jsonPathLabel">JSON Path</span>
               <input id="jsonPathInput" type="text" autocomplete="off" placeholder="$.user.name or $.items[0]">
             </label>
           </div>
 
           <div id="logFilterPanel" class="filter-panel" hidden>
             <label for="logLevelFilter">
-              <span>Level</span>
+              <span data-i18n="levelLabel">Level</span>
               <select id="logLevelFilter">
-                <option value="all">All levels</option>
+                <option value="all" data-i18n-option="allLevels">All levels</option>
                 <option value="ERROR">ERROR</option>
                 <option value="WARN">WARN</option>
                 <option value="INFO">INFO</option>
@@ -91,23 +91,23 @@
               </select>
             </label>
             <label for="logKeywordFilter">
-              <span>Keyword</span>
-              <input id="logKeywordFilter" type="text" autocomplete="off" placeholder="request id, user id, error text">
+              <span data-i18n="keywordLabel">Keyword</span>
+              <input id="logKeywordFilter" type="text" autocomplete="off" data-i18n-placeholder="keywordPlaceholder" placeholder="request id, user id, error text">
             </label>
             <label class="checkbox-control" for="logCaseSensitive">
               <input id="logCaseSensitive" type="checkbox">
-              <span>Case sensitive</span>
+              <span data-i18n="caseSensitiveLabel">Case sensitive</span>
             </label>
             <label for="logTimeFrom">
-              <span>From time</span>
+              <span data-i18n="fromTimeLabel">From time</span>
               <input id="logTimeFrom" type="text" autocomplete="off" placeholder="2026-05-17 10:00:00">
             </label>
             <label for="logTimeTo">
-              <span>To time</span>
+              <span data-i18n="toTimeLabel">To time</span>
               <input id="logTimeTo" type="text" autocomplete="off" placeholder="2026-05-17 11:00:00">
             </label>
             <label for="logContextLines">
-              <span>Error context</span>
+              <span data-i18n="errorContextLabel">Error context</span>
               <input id="logContextLines" type="text" inputmode="numeric" autocomplete="off" placeholder="1">
             </label>
           </div>
@@ -115,15 +115,15 @@
           <div id="stackOptionsPanel" class="filter-panel" hidden>
             <label class="checkbox-control" for="stackHideVendor">
               <input id="stackHideVendor" type="checkbox" checked>
-              <span>Fold vendor frames</span>
+              <span data-i18n="foldVendorLabel">Fold vendor frames</span>
             </label>
           </div>
 
           <div id="minifyOptionsPanel" class="filter-panel" hidden>
             <label for="minifyModeSelect">
-              <span>Input type</span>
+              <span data-i18n="inputTypeLabel">Input type</span>
               <select id="minifyModeSelect">
-                <option value="auto">Auto</option>
+                <option value="auto" data-i18n-option="toolAuto">Auto</option>
                 <option value="js">JavaScript</option>
                 <option value="css">CSS</option>
               </select>
@@ -133,25 +133,25 @@
           <div id="textOptionsPanel" class="filter-panel" hidden>
             <label class="checkbox-control" for="textMarkdownMode">
               <input id="textMarkdownMode" type="checkbox" checked>
-              <span>Preserve Markdown</span>
+              <span data-i18n="preserveMarkdownLabel">Preserve Markdown</span>
             </label>
             <label class="checkbox-control" for="textDedupeLines">
               <input id="textDedupeLines" type="checkbox">
-              <span>Remove duplicate lines</span>
+              <span data-i18n="dedupeLinesLabel">Remove duplicate lines</span>
             </label>
             <label class="checkbox-control" for="textSortLines">
               <input id="textSortLines" type="checkbox">
-              <span>Sort lines</span>
+              <span data-i18n="sortLinesLabel">Sort lines</span>
             </label>
           </div>
 
           <div id="diffModePanel" class="filter-panel" hidden>
             <label for="diffModeSelect">
-              <span>Diff Mode</span>
+              <span data-i18n="diffModeLabel">Diff Mode</span>
               <select id="diffModeSelect">
-                <option value="compare">Compare two texts</option>
-                <option value="format">Format existing diff</option>
-                <option value="apply">Apply unified diff</option>
+                <option value="compare" data-i18n-option="compareTwoTexts">Compare two texts</option>
+                <option value="format" data-i18n-option="formatExistingDiff">Format existing diff</option>
+                <option value="apply" data-i18n-option="applyUnifiedDiff">Apply unified diff</option>
               </select>
             </label>
           </div>
@@ -159,95 +159,95 @@
           <div id="diffComparePanel" class="compare-panel" hidden>
             <label class="editor-panel" for="diffBeforeArea">
               <span id="diffBeforeLabel" class="panel-title">Before</span>
-              <textarea id="diffBeforeArea" spellcheck="false" placeholder="Paste the original text"></textarea>
+              <textarea id="diffBeforeArea" spellcheck="false" data-i18n-placeholder="diffBeforePlaceholder" placeholder="Paste the original text"></textarea>
             </label>
             <label class="editor-panel" for="diffAfterArea">
               <span id="diffAfterLabel" class="panel-title">After</span>
-              <textarea id="diffAfterArea" spellcheck="false" placeholder="Paste the changed text"></textarea>
+              <textarea id="diffAfterArea" spellcheck="false" data-i18n-placeholder="diffAfterPlaceholder" placeholder="Paste the changed text"></textarea>
             </label>
           </div>
 
           <div id="editorGrid" class="editor-grid">
             <label id="inputPanel" class="editor-panel" for="inputArea">
-              <span class="panel-title">Input</span>
-              <textarea id="inputArea" spellcheck="false" placeholder="Paste logs, JSON, code, stack traces, diffs, or text here"></textarea>
+              <span class="panel-title" data-i18n="inputLabel">Input</span>
+              <textarea id="inputArea" spellcheck="false" data-i18n-placeholder="inputPlaceholder" placeholder="Paste logs, JSON, code, stack traces, diffs, or text here"></textarea>
             </label>
 
             <label class="editor-panel" for="outputArea">
-              <span class="panel-title">Output</span>
+              <span class="panel-title" data-i18n="outputLabel">Output</span>
               <textarea id="outputArea" spellcheck="false" readonly></textarea>
             </label>
           </div>
         </section>
 
         <section id="previewSection" class="refactor-rules" aria-labelledby="preview-title" hidden>
-          <h2 id="preview-title">Before / After Preview</h2>
+          <h2 id="preview-title" data-i18n="previewTitle">Before / After Preview</h2>
           <pre id="previewOutput" class="preview-output"></pre>
         </section>
 
         <section class="refactor-rules" aria-labelledby="rules-title">
-          <h2 id="rules-title">Code Refactor Rules</h2>
+          <h2 id="rules-title" data-i18n="rulesTitle">Code Refactor Rules</h2>
           <div class="rule-grid">
-            <p>振る舞いを変えないと判断できる変換だけを行います。</p>
-            <p>ネスト削減はguard clauseを優先し、後続処理がある危険なケースは維持します。</p>
-            <p>変数名、関数名、副作用のある処理は勝手に変更しません。</p>
-            <p>ASTなしの簡易解析で扱えない複雑なコードは、整形中心に留めます。</p>
+            <p data-i18n="ruleOne">Only transformations that can be judged without changing behavior are applied.</p>
+            <p data-i18n="ruleTwo">Guard clauses are preferred for reducing nesting, while risky cases are preserved.</p>
+            <p data-i18n="ruleThree">Variable names, function names, and meaningful operation order are not rewritten.</p>
+            <p data-i18n="ruleFour">Without AST parsing, complex code is formatted conservatively instead of forced.</p>
           </div>
         </section>
 
         <section class="tool-cards" aria-labelledby="tools-title">
-          <h2 id="tools-title">Tools</h2>
+          <h2 id="tools-title" data-i18n="toolsTitle">Tools</h2>
           <div class="cards-grid">
             <article class="tool-card">
-              <h3>JSON Formatter</h3>
-              <p>JSONと二重エンコードされたJSON文字列を整形し、エラー位置も表示します。</p>
+              <h3 data-i18n="toolJson">JSON Formatter</h3>
+              <p data-i18n="jsonCard">Formats unreadable JSON with two-space indentation, key summaries, and JSON Path lookup.</p>
             </article>
             <article class="tool-card">
-              <h3>Log Formatter</h3>
-              <p>ログのレベルや日時を読みやすく整え、レベルとキーワードで絞り込めます。</p>
+              <h3 data-i18n="toolLog">Log Formatter</h3>
+              <p data-i18n="logCard">Cleans log levels and timestamps, extracts request IDs, and filters long logs.</p>
             </article>
             <article class="tool-card">
-              <h3>Code Refactor</h3>
-              <p>安全な範囲でguard clause化、else after return削除、基本的なコード整形を行います。</p>
+              <h3 data-i18n="toolCode">Code Refactor</h3>
+              <p data-i18n="codeCard">Applies safe guard-clause refactors, removes else after return, and explains changes.</p>
             </article>
             <article class="tool-card">
-              <h3>Stack Trace Formatter</h3>
-              <p>ANSIカラーを除去し、Error、Caused by、stack frameを読みやすく整理します。</p>
+              <h3 data-i18n="toolStack">Stack Trace Formatter</h3>
+              <p data-i18n="stackCard">Organizes errors and stack frames, counts frames, and folds vendor noise.</p>
             </article>
             <article class="tool-card">
-              <h3>Minify Beautifier</h3>
-              <p>文字列やURLを壊さないよう保護しながら、minifyされたJS/CSSを整形します。</p>
+              <h3 data-i18n="toolMinify">Minify Beautifier</h3>
+              <p data-i18n="minifyCard">Beautifies minified JS/CSS and reports line and size changes.</p>
             </article>
             <article class="tool-card">
-              <h3>Diff Viewer</h3>
-              <p>Before/Afterの比較、またはdiff形式の追加・削除行を分かりやすく表示します。</p>
+              <h3 data-i18n="toolDiff">Diff Viewer</h3>
+              <p data-i18n="diffCard">Compares before/after text, formats diffs, and applies unified diff patches.</p>
             </article>
             <article class="tool-card">
-              <h3>Text Formatter</h3>
-              <p>余分な空白を整理し、通常文は段落化し、箇条書きやキー値行は保持します。</p>
+              <h3 data-i18n="toolText">Text Formatter</h3>
+              <p data-i18n="textCard">Normalizes spacing, keeps Markdown readable, removes duplicates, and sorts lines.</p>
             </article>
           </div>
         </section>
       </main>
 
       <footer class="site-footer">
-        <p>No data leaves your browser.</p>
+        <p data-i18n="footerSecurity">No data leaves your browser.</p>
         <p>
-          <a href="/privacy.html">Privacy</a>
+          <a href="/privacy.html" data-i18n="privacyLink">Privacy</a>
           <span aria-hidden="true"> / </span>
-          <a href="/about.html">About</a>
+          <a href="/about.html" data-i18n="aboutLink">About</a>
           <span aria-hidden="true"> / </span>
-          <a href="/json-formatter.html">JSON Formatter</a>
+          <a href="/json-formatter.html" data-i18n="toolJson">JSON Formatter</a>
           <span aria-hidden="true"> / </span>
-          <a href="/log-formatter.html">Log Formatter</a>
+          <a href="/log-formatter.html" data-i18n="toolLog">Log Formatter</a>
           <span aria-hidden="true"> / </span>
-          <a href="/stack-trace-formatter.html">Stack Trace Formatter</a>
+          <a href="/stack-trace-formatter.html" data-i18n="toolStack">Stack Trace Formatter</a>
           <span aria-hidden="true"> / </span>
-          <a href="/diff-viewer.html">Diff Viewer</a>
+          <a href="/diff-viewer.html" data-i18n="toolDiff">Diff Viewer</a>
           <span aria-hidden="true"> / </span>
-          <a href="/minify-beautifier.html">Minify Beautifier</a>
+          <a href="/minify-beautifier.html" data-i18n="toolMinify">Minify Beautifier</a>
           <span aria-hidden="true"> / </span>
-          <a href="/code-refactor.html">Code Refactor</a>
+          <a href="/code-refactor.html" data-i18n="toolCode">Code Refactor</a>
         </p>
       </footer>
     </div>

@@ -56,10 +56,21 @@ input {
 
 .site-header {
   display: flex;
-  align-items: end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
   padding: 18px 0 22px;
+}
+
+.language-picker {
+  display: grid;
+  grid-template-columns: auto minmax(128px, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 220px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .eyebrow {
@@ -149,14 +160,10 @@ h1 {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(140px, 0.45fr) minmax(220px, 0.7fr) minmax(180px, 0.45fr) minmax(360px, 1.4fr);
+  grid-template-columns: minmax(140px, 0.45fr) minmax(220px, 0.7fr) minmax(360px, 1.4fr);
   gap: 12px;
   align-items: center;
   margin-bottom: 14px;
-}
-
-.compact-picker {
-  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .detected {
@@ -470,6 +477,13 @@ textarea[readonly] {
 
   .site-header {
     padding-top: 8px;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .language-picker {
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr);
   }
 
   .security-panel,
