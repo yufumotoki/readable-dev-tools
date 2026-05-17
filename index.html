@@ -85,6 +85,16 @@
             </label>
           </div>
 
+          <div id="diffModePanel" class="filter-panel" hidden>
+            <label for="diffModeSelect">
+              <span>Diff Mode</span>
+              <select id="diffModeSelect">
+                <option value="compare">Compare two texts</option>
+                <option value="format">Format existing diff</option>
+              </select>
+            </label>
+          </div>
+
           <div id="diffComparePanel" class="compare-panel" hidden>
             <label class="editor-panel" for="diffBeforeArea">
               <span class="panel-title">Before</span>
@@ -96,8 +106,8 @@
             </label>
           </div>
 
-          <div class="editor-grid">
-            <label class="editor-panel" for="inputArea">
+          <div id="editorGrid" class="editor-grid">
+            <label id="inputPanel" class="editor-panel" for="inputArea">
               <span class="panel-title">Input</span>
               <textarea id="inputArea" spellcheck="false" placeholder="ここにログ・JSON・コード・stack trace・diffを貼り付けてください"></textarea>
             </label>

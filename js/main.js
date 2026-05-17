@@ -14,6 +14,10 @@ const logFilterPanel = document.getElementById("logFilterPanel");
 const logLevelFilter = document.getElementById("logLevelFilter");
 const logKeywordFilter = document.getElementById("logKeywordFilter");
 const logCaseSensitive = document.getElementById("logCaseSensitive");
+const editorGrid = document.getElementById("editorGrid");
+const inputPanel = document.getElementById("inputPanel");
+const diffModePanel = document.getElementById("diffModePanel");
+const diffModeSelect = document.getElementById("diffModeSelect");
 const diffComparePanel = document.getElementById("diffComparePanel");
 const diffBeforeArea = document.getElementById("diffBeforeArea");
 const diffAfterArea = document.getElementById("diffAfterArea");
@@ -39,6 +43,9 @@ export function processInput() {
   const input = inputArea.value;
   const selectedType = toolSelect.value;
   const type = selectedType === "auto" ? detectType(input) : selectedType;
+  const isManualDiff = selectedType === "diff";
+  const diffMode = diffModeSelect ? diffModeSelect.value : "compare";
+  const isDiffCompareMode = isManualDiff && diffMode === "compare";
   const options = {
     log: {
       level: logLevelFilter ? logLevelFilter.value : "all",
@@ -50,11 +57,9 @@ export function processInput() {
   detectedType.textContent = formatTypeLabel(type);
 
   if (
-    type === "diff" &&
-    toolSelect.value === "diff" &&
+    isDiffCompareMode &&
     diffBeforeArea &&
-    diffAfterArea &&
-    (diffBeforeArea.value || diffAfterArea.value)
+    diffAfterArea
   ) {
     outputArea.value = compareTextDiff(diffBeforeArea.value, diffAfterArea.value);
   } else {
@@ -66,7 +71,19 @@ export function processInput() {
   }
 
   if (diffComparePanel) {
-    diffComparePanel.hidden = type !== "diff";
+    diffComparePanel.hidden = !isDiffCompareMode;
+  }
+
+  if (diffModePanel) {
+    diffModePanel.hidden = !isManualDiff;
+  }
+
+  if (inputPanel) {
+    inputPanel.hidden = isDiffCompareMode;
+  }
+
+  if (editorGrid) {
+    editorGrid.classList.toggle("output-only", isDiffCompareMode);
   }
 }
 
@@ -118,6 +135,9 @@ clearButton.addEventListener("click", () => {
   if (diffAfterArea) {
     diffAfterArea.value = "";
   }
+  if (diffModeSelect) {
+    diffModeSelect.value = "compare";
+  }
   if (logLevelFilter) {
     logLevelFilter.value = "all";
   }
@@ -129,7 +149,11 @@ clearButton.addEventListener("click", () => {
   }
   detectedType.textContent = "Empty";
   resetCopyStatus("");
-  inputArea.focus();
+  if (toolSelect.value === "diff" && diffBeforeArea) {
+    diffBeforeArea.focus();
+  } else {
+    inputArea.focus();
+  }
 });
 
 copyButton.addEventListener("click", copyOutput);
@@ -141,6 +165,9 @@ if (logKeywordFilter) {
 }
 if (logCaseSensitive) {
   logCaseSensitive.addEventListener("change", processInput);
+}
+if (diffModeSelect) {
+  diffModeSelect.addEventListener("change", processInput);
 }
 if (diffBeforeArea) {
   diffBeforeArea.addEventListener("input", processInput);

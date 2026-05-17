@@ -295,6 +295,14 @@ button.secondary:hover {
   display: none;
 }
 
+.editor-grid.output-only {
+  grid-template-columns: 1fr;
+}
+
+.editor-panel[hidden] {
+  display: none;
+}
+
 .editor-panel {
   display: flex;
   flex-direction: column;
