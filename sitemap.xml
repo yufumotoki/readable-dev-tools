@@ -4,4 +4,19 @@
     <loc>https://readable-dev-tools.pages.dev/</loc>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/privacy.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/about.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/json-formatter.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/log-formatter.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/stack-trace-formatter.html</loc>
+  </url>
 </urlset>
