@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'; media-src 'none'"
+    >
+    <meta name="description" content="Readable Dev Tools formats logs, JSON, code, stack traces, diffs, and text entirely in your browser.">
+    <title>Readable Dev Tools</title>
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="site-header">
+        <div>
+          <p class="eyebrow">Readable Dev Tools</p>
+          <h1>貼るだけで、読める。</h1>
+          <p class="lead">データは一切外に出ません。すべてブラウザ内で処理されます。</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="security-panel" aria-labelledby="security-title">
+          <div class="security-heading">
+            <h2 id="security-title">No data leaves your browser.</h2>
+            <p>入力された内容はサーバーに送信されず、ブラウザ内のメモリ上でのみ処理されます。</p>
+          </div>
+          <div class="badge-grid" aria-label="Security properties">
+            <span class="security-badge">100% Local Processing</span>
+            <span class="security-badge">No API Calls</span>
+            <span class="security-badge">No Data Transfer</span>
+            <span class="security-badge">No Storage</span>
+            <span class="security-badge">Works Offline</span>
+          </div>
+        </section>
+
+        <section class="workspace" aria-label="Formatter workspace">
+          <div class="toolbar">
+            <div class="detected">
+              <span>Detected:</span>
+              <strong id="detectedType">Empty</strong>
+            </div>
+            <label class="tool-picker" for="toolSelect">
+              <span>Tool</span>
+              <select id="toolSelect">
+                <option value="auto">Auto</option>
+                <option value="json">JSON Formatter</option>
+                <option value="log">Log Formatter</option>
+                <option value="code">Code Refactor</option>
+                <option value="stack">Stack Trace Formatter</option>
+                <option value="minify">Minify Beautifier</option>
+                <option value="diff">Diff Viewer</option>
+                <option value="text">Text Formatter</option>
+              </select>
+            </label>
+            <div class="actions" aria-label="Actions">
+              <button id="formatButton" type="button">Format / Refactor</button>
+              <button id="clearButton" type="button" class="secondary">Clear</button>
+              <button id="copyButton" type="button" class="secondary">Copy Output</button>
+              <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div id="logFilterPanel" class="filter-panel" hidden>
+            <label for="logLevelFilter">
+              <span>Level</span>
+              <select id="logLevelFilter">
+                <option value="all">All levels</option>
+                <option value="ERROR">ERROR</option>
+                <option value="WARN">WARN</option>
+                <option value="INFO">INFO</option>
+                <option value="DEBUG">DEBUG</option>
+              </select>
+            </label>
+            <label for="logKeywordFilter">
+              <span>Keyword</span>
+              <input id="logKeywordFilter" type="text" autocomplete="off" placeholder="request id, user id, error text">
+            </label>
+            <label class="checkbox-control" for="logCaseSensitive">
+              <input id="logCaseSensitive" type="checkbox">
+              <span>Case sensitive</span>
+            </label>
+          </div>
+
+          <div class="editor-grid">
+            <label class="editor-panel" for="inputArea">
+              <span class="panel-title">Input</span>
+              <textarea id="inputArea" spellcheck="false" placeholder="ここにログ・JSON・コード・stack trace・diffを貼り付けてください"></textarea>
+            </label>
+
+            <label class="editor-panel" for="outputArea">
+              <span class="panel-title">Output</span>
+              <textarea id="outputArea" spellcheck="false" readonly></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="refactor-rules" aria-labelledby="rules-title">
+          <h2 id="rules-title">Code Refactor Rules</h2>
+          <div class="rule-grid">
+            <p>振る舞いを変えないと判断できる変換だけを行います。</p>
+            <p>ネスト削減はguard clauseを優先し、後続処理がある危険なケースは維持します。</p>
+            <p>変数名、関数名、副作用のある処理は勝手に変更しません。</p>
+            <p>ASTなしの簡易解析で扱えない複雑なコードは、整形中心に留めます。</p>
+          </div>
+        </section>
+
+        <section class="tool-cards" aria-labelledby="tools-title">
+          <h2 id="tools-title">対応ツール</h2>
+          <div class="cards-grid">
+            <article class="tool-card">
+              <h3>JSON Formatter</h3>
+              <p>JSONと二重エンコードされたJSON文字列を整形し、エラー位置も表示します。</p>
+            </article>
+            <article class="tool-card">
+              <h3>Log Formatter</h3>
+              <p>ログのレベルや日時を読みやすく整え、レベルとキーワードで絞り込めます。</p>
+            </article>
+            <article class="tool-card">
+              <h3>Code Refactor</h3>
+              <p>安全な範囲でguard clause化、else after return削除、基本的なコード整形を行います。</p>
+            </article>
+            <article class="tool-card">
+              <h3>Stack Trace Formatter</h3>
+              <p>ANSIカラーを除去し、Error、Caused by、stack frameを読みやすく整理します。</p>
+            </article>
+            <article class="tool-card">
+              <h3>Minify Beautifier</h3>
+              <p>文字列やURLを壊さないよう保護しながら、minifyされたJS/CSSを整形します。</p>
+            </article>
+            <article class="tool-card">
+              <h3>Diff Viewer</h3>
+              <p>追加・削除・チャンク・ファイルヘッダを分類し、差分サマリーを表示します。</p>
+            </article>
+            <article class="tool-card">
+              <h3>Text Formatter</h3>
+              <p>余分な空白を整理し、通常文は段落化し、箇条書きやキー値行は保持します。</p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>No data leaves your browser.</p>
+      </footer>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
