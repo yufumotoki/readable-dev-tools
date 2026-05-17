@@ -331,10 +331,64 @@ export function refactorNestedCode(input) {
   const tree = parseCode(original);
   tree.children = transformChildren(tree.children);
   const body = simplifyBooleanReturns(formatTree(tree).join("\n"));
+  const formattedOriginal = formatTree(parseCode(original)).join("\n");
+  const reasons = [];
+
+  if (body.includes("return Boolean(") || body.includes("return !(")) {
+    reasons.push("- Simplified boolean return branches.");
+  }
+
+  if (/if \(!.+\) (return|continue)/.test(body)) {
+    reasons.push("- Replaced safe nested conditions with guard clauses.");
+  }
+
+  if (!body.includes("else {") && formattedOriginal.includes("else {")) {
+    reasons.push("- Removed else after a branch that returns.");
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("- Formatted code without applying risky behavior-changing refactors.");
+  }
+
+  const diff = createSimpleDiff(formattedOriginal, body);
 
   return [
     "// Refactored by Readable Dev Tools",
     "// Rules: preserve behavior, prefer early exits, reduce nesting, keep names and side effects unchanged.",
+    "",
+    "[REASONS]",
+    ...reasons,
+    "",
+    "[BEFORE / AFTER DIFF]",
+    diff,
+    "",
+    "[REFACTORED]",
     body,
   ].join("\n");
+}
+
+function createSimpleDiff(before, after) {
+  const beforeLines = before.split("\n");
+  const afterLines = after.split("\n");
+  const max = Math.max(beforeLines.length, afterLines.length);
+  const rows = [];
+
+  for (let index = 0; index < max; index += 1) {
+    const beforeLine = beforeLines[index];
+    const afterLine = afterLines[index];
+
+    if (beforeLine === afterLine) {
+      rows.push(`  ${beforeLine || ""}`);
+    } else {
+      if (beforeLine !== undefined) {
+        rows.push(`- ${beforeLine}`);
+      }
+
+      if (afterLine !== undefined) {
+        rows.push(`+ ${afterLine}`);
+      }
+    }
+  }
+
+  return rows.join("\n");
 }

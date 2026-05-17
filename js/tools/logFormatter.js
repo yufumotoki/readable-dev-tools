@@ -4,6 +4,43 @@ function stripAnsi(line) {
   return line.replace(/\u001b\[[0-9;]*m/g, "");
 }
 
+function extractTimestamp(line) {
+  const clean = stripAnsi(line);
+  const match = clean.match(/(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}:\d{2}:\d{2}))?/);
+
+  if (!match) {
+    return "";
+  }
+
+  return match[2] ? `${match[1]} ${match[2]}` : match[1];
+}
+
+function compareTimestamp(value, boundary) {
+  if (!value || !boundary) {
+    return 0;
+  }
+
+  return value.localeCompare(boundary);
+}
+
+function extractRequestIds(text) {
+  const ids = new Set();
+  const patterns = [
+    /\b(?:request[-_ ]?id|req[-_ ]?id|trace[-_ ]?id|correlation[-_ ]?id)\s*[=:]\s*([A-Za-z0-9_.:-]+)/gi,
+    /\b(?:rid|tid)\s*[=:]\s*([A-Za-z0-9_.:-]+)/gi,
+  ];
+
+  for (const pattern of patterns) {
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+      ids.add(match[1]);
+    }
+  }
+
+  return [...ids];
+}
+
 function hasLevelPrefix(line) {
   return /^\[(ERROR|WARN|INFO|DEBUG)\]\s/i.test(stripAnsi(line));
 }
@@ -105,8 +142,17 @@ function shouldIncludeEntry(entry, options) {
   const level = detectLevel(entry[0] || joined);
   const selectedLevel = options.level || "all";
   const keyword = options.keyword || "";
+  const timestamp = extractTimestamp(entry[0] || "");
 
   if (selectedLevel !== "all" && level !== selectedLevel) {
+    return false;
+  }
+
+  if (options.timeFrom && compareTimestamp(timestamp, options.timeFrom) < 0) {
+    return false;
+  }
+
+  if (options.timeTo && compareTimestamp(timestamp, options.timeTo) > 0) {
     return false;
   }
 
@@ -137,8 +183,43 @@ function formatLogLine(line, index) {
 }
 
 export function formatLog(input, options = {}) {
-  return groupLogEntries(input)
-    .filter((entry) => shouldIncludeEntry(entry, options))
+  const entries = groupLogEntries(input);
+  const contextLines = Math.max(Number(options.contextLines || 0), 0);
+  const included = new Set();
+
+  entries.forEach((entry, index) => {
+    if (shouldIncludeEntry(entry, options)) {
+      included.add(index);
+    }
+
+    if (contextLines > 0 && detectLevel(entry[0] || entry.join("\n")) === "ERROR") {
+      for (let offset = -contextLines; offset <= contextLines; offset += 1) {
+        const contextIndex = index + offset;
+
+        if (contextIndex >= 0 && contextIndex < entries.length) {
+          included.add(contextIndex);
+        }
+      }
+    }
+  });
+
+  const selectedEntries = entries.filter((entry, index) => included.has(index));
+  const requestIds = extractRequestIds(selectedEntries.flat().join("\n"));
+  const levels = LEVELS.map((level) => {
+    const count = selectedEntries.filter((entry) => detectLevel(entry[0] || entry.join("\n")) === level).length;
+    return `${level}:${count}`;
+  }).join(" ");
+  const summary = [
+    "[SUMMARY]",
+    `Entries: ${selectedEntries.length}/${entries.length}`,
+    `Levels: ${levels}`,
+    `Request IDs: ${requestIds.length ? requestIds.join(", ") : "none"}`,
+    "",
+  ].join("\n");
+
+  const body = selectedEntries
     .map((entry) => entry.map(formatLogLine).join("\n"))
     .join("\n");
+
+  return body ? `${summary}${body}` : `${summary}No log entries matched.`;
 }

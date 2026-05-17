@@ -149,10 +149,14 @@ h1 {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(150px, 0.5fr) minmax(230px, 0.7fr) minmax(360px, 1.4fr);
+  grid-template-columns: minmax(140px, 0.45fr) minmax(220px, 0.7fr) minmax(180px, 0.45fr) minmax(360px, 1.4fr);
   gap: 12px;
   align-items: center;
   margin-bottom: 14px;
+}
+
+.compact-picker {
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .detected {
@@ -238,7 +242,7 @@ button.secondary:hover {
 
 .filter-panel {
   display: grid;
-  grid-template-columns: minmax(150px, 0.45fr) minmax(260px, 1fr) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   align-items: end;
   margin-bottom: 14px;
@@ -376,6 +380,20 @@ textarea[readonly] {
   background: var(--panel-soft);
   font-size: 0.82rem;
   line-height: 1.6;
+}
+
+.preview-output {
+  min-height: 120px;
+  max-height: 340px;
+  overflow: auto;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  background: #0b0e11;
+  line-height: 1.55;
+  white-space: pre-wrap;
 }
 
 .tool-cards {

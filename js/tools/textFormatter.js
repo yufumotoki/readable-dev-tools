@@ -48,20 +48,38 @@ function splitMarkdownBlocks(text) {
   return blocks;
 }
 
-export function formatText(input) {
-  const normalized = input
+export function formatText(input, options = {}) {
+  let normalizedLines = input
     .trim()
     .replace(/\t/g, "  ")
     .replace(/\u00a0/g, " ")
     .split(/\r?\n/)
-    .map((line) => line.replace(/[ \t]+$/g, "").replace(/[ \t]{3,}/g, "  "))
+    .map((line) => line.replace(/[ \t]+$/g, "").replace(/[ \t]{3,}/g, "  "));
+
+  if (options.dedupe) {
+    const seen = new Set();
+    normalizedLines = normalizedLines.filter((line) => {
+      if (seen.has(line)) {
+        return false;
+      }
+
+      seen.add(line);
+      return true;
+    });
+  }
+
+  if (options.sort) {
+    normalizedLines = [...normalizedLines].sort((a, b) => a.localeCompare(b));
+  }
+
+  const normalized = normalizedLines
     .join("\n")
     .replace(/\n{3,}/g, "\n\n");
 
-  return splitMarkdownBlocks(normalized)
+  let output = splitMarkdownBlocks(normalized)
     .map((block) => {
       if (block.type === "raw") {
-        return block.text;
+        return options.markdown === false ? formatPlainParagraph(block.text) : block.text;
       }
 
       return block.text
@@ -71,4 +89,14 @@ export function formatText(input) {
     })
     .join("\n")
     .replace(/\n{3,}/g, "\n\n");
+
+  return [
+    "[SUMMARY]",
+    `Lines: ${input.split(/\r?\n/).length} -> ${output.split(/\r?\n/).length}`,
+    `Duplicate removal: ${options.dedupe ? "on" : "off"}`,
+    `Sort: ${options.sort ? "on" : "off"}`,
+    "",
+    "[FORMATTED]",
+    output,
+  ].join("\n");
 }

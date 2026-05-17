@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,8 +17,8 @@
       <header class="site-header">
         <div>
           <p class="eyebrow">Readable Dev Tools</p>
-          <h1>貼るだけで、読める。</h1>
-          <p class="lead">データは一切外に出ません。すべてブラウザ内で処理されます。</p>
+          <h1 data-i18n="heroTitle">Paste it. Make it readable.</h1>
+          <p class="lead" data-i18n="heroLead">No data leaves your browser. Everything is processed locally.</p>
         </div>
       </header>
 
@@ -26,7 +26,7 @@
         <section class="security-panel" aria-labelledby="security-title">
           <div class="security-heading">
             <h2 id="security-title">No data leaves your browser.</h2>
-            <p>入力された内容はサーバーに送信されず、ブラウザ内のメモリ上でのみ処理されます。</p>
+            <p data-i18n="securityText">Your input is never sent to a server and is processed only in browser memory.</p>
           </div>
           <div class="badge-grid" aria-label="Security properties">
             <span class="security-badge">100% Local Processing</span>
@@ -56,12 +56,27 @@
                 <option value="text">Text Formatter</option>
               </select>
             </label>
+            <label class="tool-picker compact-picker" for="languageSelect">
+              <span>Language</span>
+              <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="ja">日本語</option>
+              </select>
+            </label>
             <div class="actions" aria-label="Actions">
+              <button id="sampleButton" type="button" class="secondary">Sample</button>
               <button id="formatButton" type="button">Format / Refactor</button>
               <button id="clearButton" type="button" class="secondary">Clear</button>
               <button id="copyButton" type="button" class="secondary">Copy Output</button>
               <span id="copyStatus" class="copy-status" aria-live="polite"></span>
             </div>
+          </div>
+
+          <div id="jsonOptionsPanel" class="filter-panel" hidden>
+            <label for="jsonPathInput">
+              <span>JSON Path</span>
+              <input id="jsonPathInput" type="text" autocomplete="off" placeholder="$.user.name or $.items[0]">
+            </label>
           </div>
 
           <div id="logFilterPanel" class="filter-panel" hidden>
@@ -83,6 +98,51 @@
               <input id="logCaseSensitive" type="checkbox">
               <span>Case sensitive</span>
             </label>
+            <label for="logTimeFrom">
+              <span>From time</span>
+              <input id="logTimeFrom" type="text" autocomplete="off" placeholder="2026-05-17 10:00:00">
+            </label>
+            <label for="logTimeTo">
+              <span>To time</span>
+              <input id="logTimeTo" type="text" autocomplete="off" placeholder="2026-05-17 11:00:00">
+            </label>
+            <label for="logContextLines">
+              <span>Error context</span>
+              <input id="logContextLines" type="text" inputmode="numeric" autocomplete="off" placeholder="1">
+            </label>
+          </div>
+
+          <div id="stackOptionsPanel" class="filter-panel" hidden>
+            <label class="checkbox-control" for="stackHideVendor">
+              <input id="stackHideVendor" type="checkbox" checked>
+              <span>Fold vendor frames</span>
+            </label>
+          </div>
+
+          <div id="minifyOptionsPanel" class="filter-panel" hidden>
+            <label for="minifyModeSelect">
+              <span>Input type</span>
+              <select id="minifyModeSelect">
+                <option value="auto">Auto</option>
+                <option value="js">JavaScript</option>
+                <option value="css">CSS</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="textOptionsPanel" class="filter-panel" hidden>
+            <label class="checkbox-control" for="textMarkdownMode">
+              <input id="textMarkdownMode" type="checkbox" checked>
+              <span>Preserve Markdown</span>
+            </label>
+            <label class="checkbox-control" for="textDedupeLines">
+              <input id="textDedupeLines" type="checkbox">
+              <span>Remove duplicate lines</span>
+            </label>
+            <label class="checkbox-control" for="textSortLines">
+              <input id="textSortLines" type="checkbox">
+              <span>Sort lines</span>
+            </label>
           </div>
 
           <div id="diffModePanel" class="filter-panel" hidden>
@@ -99,18 +159,18 @@
           <div id="diffComparePanel" class="compare-panel" hidden>
             <label class="editor-panel" for="diffBeforeArea">
               <span id="diffBeforeLabel" class="panel-title">Before</span>
-              <textarea id="diffBeforeArea" spellcheck="false" placeholder="比較元のテキストを貼り付けてください"></textarea>
+              <textarea id="diffBeforeArea" spellcheck="false" placeholder="Paste the original text"></textarea>
             </label>
             <label class="editor-panel" for="diffAfterArea">
               <span id="diffAfterLabel" class="panel-title">After</span>
-              <textarea id="diffAfterArea" spellcheck="false" placeholder="比較先のテキストを貼り付けてください"></textarea>
+              <textarea id="diffAfterArea" spellcheck="false" placeholder="Paste the changed text"></textarea>
             </label>
           </div>
 
           <div id="editorGrid" class="editor-grid">
             <label id="inputPanel" class="editor-panel" for="inputArea">
               <span class="panel-title">Input</span>
-              <textarea id="inputArea" spellcheck="false" placeholder="ここにログ・JSON・コード・stack trace・diffを貼り付けてください"></textarea>
+              <textarea id="inputArea" spellcheck="false" placeholder="Paste logs, JSON, code, stack traces, diffs, or text here"></textarea>
             </label>
 
             <label class="editor-panel" for="outputArea">
@@ -130,8 +190,13 @@
           </div>
         </section>
 
+        <section id="previewSection" class="refactor-rules" aria-labelledby="preview-title" hidden>
+          <h2 id="preview-title">Before / After Preview</h2>
+          <pre id="previewOutput" class="preview-output"></pre>
+        </section>
+
         <section class="tool-cards" aria-labelledby="tools-title">
-          <h2 id="tools-title">対応ツール</h2>
+          <h2 id="tools-title">Tools</h2>
           <div class="cards-grid">
             <article class="tool-card">
               <h3>JSON Formatter</h3>

@@ -9,19 +9,19 @@ import { formatText } from "./tools/textFormatter.js";
 export function runTool(type, input, options = {}) {
   switch (type) {
     case "json":
-      return formatJSON(input);
+      return formatJSON(input, options.json || {});
     case "log":
       return formatLog(input, options.log || {});
     case "code":
       return refactorNestedCode(input);
     case "stack":
-      return formatStackTrace(input);
+      return formatStackTrace(input, options.stack || {});
     case "minify":
-      return beautifyMinified(input);
+      return beautifyMinified(input, options.minify || {});
     case "diff":
       return formatDiff(input);
     case "text":
-      return formatText(input);
+      return formatText(input, options.text || {});
     case "empty":
       return "";
     default:

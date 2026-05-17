@@ -26,7 +26,7 @@ function formatReadableLine(line) {
   });
 }
 
-export function beautifyMinified(input) {
+export function beautifyMinified(input, options = {}) {
   const text = input.trim();
 
   if (!text) {
@@ -170,5 +170,18 @@ export function beautifyMinified(input) {
 
   pushBuffer();
 
-  return lines.join("\n").replace(/\n{3,}/g, "\n\n");
+  const body = lines.join("\n").replace(/\n{3,}/g, "\n\n");
+  const beforeLines = text ? text.split(/\r?\n/).length : 0;
+  const afterLines = body ? body.split(/\r?\n/).length : 0;
+  const mode = options.mode || "auto";
+
+  return [
+    "[SUMMARY]",
+    `Mode: ${mode}`,
+    `Characters: ${text.length} -> ${body.length}`,
+    `Lines: ${beforeLines} -> ${afterLines}`,
+    "",
+    "[BEAUTIFIED]",
+    body,
+  ].join("\n");
 }
