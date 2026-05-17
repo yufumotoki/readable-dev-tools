@@ -191,8 +191,25 @@ export function applyUnifiedDiff(originalInput, patchInput) {
     return "";
   }
 
-  if (!patchInput.trim()) {
+  const patchText = patchInput.trim();
+
+  if (!patchText) {
     return originalInput;
+  }
+
+  if (!/^@@\s+-\d+/m.test(patchText)) {
+    const preview = compareTextDiff(originalInput, patchInput);
+
+    return [
+      "[MODE] Patch field did not contain unified diff hunks.",
+      "[ACTION] Treated Patch as the desired final content.",
+      "",
+      "[DIFF PREVIEW]",
+      preview,
+      "",
+      "[APPLIED RESULT]",
+      patchInput,
+    ].join("\n");
   }
 
   const original = normalizeLines(originalInput);

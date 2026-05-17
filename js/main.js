@@ -148,11 +148,11 @@ function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
 function updateDiffLabels(isApplyMode) {
   if (!diffBeforeLabel || !diffAfterLabel || !diffBeforeArea || !diffAfterArea) return;
 
-  if (isApplyMode) {
-    diffBeforeLabel.textContent = "Original";
-    diffAfterLabel.textContent = "Patch";
-    diffBeforeArea.placeholder = "Paste the original code or text";
-    diffAfterArea.placeholder = "Paste a unified diff patch";
+    if (isApplyMode) {
+      diffBeforeLabel.textContent = "Original";
+      diffAfterLabel.textContent = "Patch or Result";
+      diffBeforeArea.placeholder = "Paste the original code or text";
+      diffAfterArea.placeholder = "Paste a unified diff patch, or paste the desired final content";
   } else {
     diffBeforeLabel.textContent = "Before";
     diffAfterLabel.textContent = "After";
