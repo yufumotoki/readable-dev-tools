@@ -180,6 +180,11 @@
           </div>
         </section>
 
+        <section id="previewSection" class="refactor-rules" aria-labelledby="preview-title" hidden>
+          <h2 id="preview-title">Before / After Preview</h2>
+          <pre id="previewOutput" class="preview-output"></pre>
+        </section>
+
         <section class="refactor-rules" aria-labelledby="rules-title">
           <h2 id="rules-title">Code Refactor Rules</h2>
           <div class="rule-grid">
@@ -188,11 +193,6 @@
             <p>変数名、関数名、副作用のある処理は勝手に変更しません。</p>
             <p>ASTなしの簡易解析で扱えない複雑なコードは、整形中心に留めます。</p>
           </div>
-        </section>
-
-        <section id="previewSection" class="refactor-rules" aria-labelledby="preview-title" hidden>
-          <h2 id="preview-title">Before / After Preview</h2>
-          <pre id="previewOutput" class="preview-output"></pre>
         </section>
 
         <section class="tool-cards" aria-labelledby="tools-title">
