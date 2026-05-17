@@ -19,4 +19,13 @@
   <url>
     <loc>https://readable-dev-tools.pages.dev/stack-trace-formatter.html</loc>
   </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/diff-viewer.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/minify-beautifier.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/code-refactor.html</loc>
+  </url>
 </urlset>

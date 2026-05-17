@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-site-verification" content="googlef7b08a4a2322d6af.html">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'; media-src 'none'"
+    >
+    <title>Secure Code Refactor - Readable Dev Tools</title>
+    <meta name="description" content="Secure browser-only code refactor tool. Simplify readable JavaScript and TypeScript-style code locally without uploading source code.">
+    <link rel="canonical" href="https://readable-dev-tools.pages.dev/code-refactor.html">
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="site-header">
+        <div>
+          <p class="eyebrow">Readable Dev Tools</p>
+          <h1>Secure Code Refactor</h1>
+          <p class="lead">Refactor JavaScript and TypeScript-style code locally with safety-first guard clause rules.</p>
+        </div>
+      </header>
+
+      <main>
+        <section class="security-panel" aria-labelledby="code-title">
+          <div class="security-heading">
+            <h2 id="code-title">Local code refactoring</h2>
+            <p>Simplify safe nested if patterns, remove else after return, and format code without sending source code to a server.</p>
+          </div>
+          <div class="badge-grid">
+            <span class="security-badge">Secure Code Refactor</span>
+            <span class="security-badge">No Source Uploads</span>
+            <span class="security-badge">No Tracking</span>
+          </div>
+        </section>
+
+        <section class="refactor-rules" aria-labelledby="code-rules-title">
+          <h2 id="code-rules-title">Safety Rules</h2>
+          <div class="rule-grid">
+            <p>Only transforms patterns that can be handled with local deterministic rules.</p>
+            <p>Preserves names, string literals, and side-effectful code.</p>
+            <p>Avoids risky early returns when following work would change behavior.</p>
+            <p>No data leaves your browser.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>No data leaves your browser.</p>
+        <p><a href="/">Open Tool</a></p>
+      </footer>
+    </div>
+  </body>
+</html>
