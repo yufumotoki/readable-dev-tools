@@ -1,6 +1,6 @@
 import { detectType } from "./detector.js";
 import { runTool } from "./router.js";
-import { compareTextDiff } from "./tools/diffViewer.js";
+import { applyUnifiedDiff, compareTextDiff } from "./tools/diffViewer.js";
 
 const inputArea = document.getElementById("inputArea");
 const outputArea = document.getElementById("outputArea");
@@ -19,6 +19,8 @@ const inputPanel = document.getElementById("inputPanel");
 const diffModePanel = document.getElementById("diffModePanel");
 const diffModeSelect = document.getElementById("diffModeSelect");
 const diffComparePanel = document.getElementById("diffComparePanel");
+const diffBeforeLabel = document.getElementById("diffBeforeLabel");
+const diffAfterLabel = document.getElementById("diffAfterLabel");
 const diffBeforeArea = document.getElementById("diffBeforeArea");
 const diffAfterArea = document.getElementById("diffAfterArea");
 
@@ -46,6 +48,8 @@ export function processInput() {
   const isManualDiff = selectedType === "diff";
   const diffMode = diffModeSelect ? diffModeSelect.value : "compare";
   const isDiffCompareMode = isManualDiff && diffMode === "compare";
+  const isDiffApplyMode = isManualDiff && diffMode === "apply";
+  const usesTwoPanelDiff = isDiffCompareMode || isDiffApplyMode;
   const options = {
     log: {
       level: logLevelFilter ? logLevelFilter.value : "all",
@@ -56,12 +60,10 @@ export function processInput() {
 
   detectedType.textContent = formatTypeLabel(type);
 
-  if (
-    isDiffCompareMode &&
-    diffBeforeArea &&
-    diffAfterArea
-  ) {
+  if (isDiffCompareMode && diffBeforeArea && diffAfterArea) {
     outputArea.value = compareTextDiff(diffBeforeArea.value, diffAfterArea.value);
+  } else if (isDiffApplyMode && diffBeforeArea && diffAfterArea) {
+    outputArea.value = applyUnifiedDiff(diffBeforeArea.value, diffAfterArea.value);
   } else {
     outputArea.value = runTool(type, input, options);
   }
@@ -71,7 +73,7 @@ export function processInput() {
   }
 
   if (diffComparePanel) {
-    diffComparePanel.hidden = !isDiffCompareMode;
+    diffComparePanel.hidden = !usesTwoPanelDiff;
   }
 
   if (diffModePanel) {
@@ -79,11 +81,25 @@ export function processInput() {
   }
 
   if (inputPanel) {
-    inputPanel.hidden = isDiffCompareMode;
+    inputPanel.hidden = usesTwoPanelDiff;
   }
 
   if (editorGrid) {
-    editorGrid.classList.toggle("output-only", isDiffCompareMode);
+    editorGrid.classList.toggle("output-only", usesTwoPanelDiff);
+  }
+
+  if (diffBeforeLabel && diffAfterLabel && diffBeforeArea && diffAfterArea) {
+    if (isDiffApplyMode) {
+      diffBeforeLabel.textContent = "Original";
+      diffAfterLabel.textContent = "Patch";
+      diffBeforeArea.placeholder = "元のコードやテキストを貼り付けてください";
+      diffAfterArea.placeholder = "unified diff形式のpatchを貼り付けてください";
+    } else {
+      diffBeforeLabel.textContent = "Before";
+      diffAfterLabel.textContent = "After";
+      diffBeforeArea.placeholder = "比較元のテキストを貼り付けてください";
+      diffAfterArea.placeholder = "比較先のテキストを貼り付けてください";
+    }
   }
 }
 

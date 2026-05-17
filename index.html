@@ -91,17 +91,18 @@
               <select id="diffModeSelect">
                 <option value="compare">Compare two texts</option>
                 <option value="format">Format existing diff</option>
+                <option value="apply">Apply unified diff</option>
               </select>
             </label>
           </div>
 
           <div id="diffComparePanel" class="compare-panel" hidden>
             <label class="editor-panel" for="diffBeforeArea">
-              <span class="panel-title">Before</span>
+              <span id="diffBeforeLabel" class="panel-title">Before</span>
               <textarea id="diffBeforeArea" spellcheck="false" placeholder="比較元のテキストを貼り付けてください"></textarea>
             </label>
             <label class="editor-panel" for="diffAfterArea">
-              <span class="panel-title">After</span>
+              <span id="diffAfterLabel" class="panel-title">After</span>
               <textarea id="diffAfterArea" spellcheck="false" placeholder="比較先のテキストを貼り付けてください"></textarea>
             </label>
           </div>

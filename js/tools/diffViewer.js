@@ -158,3 +158,113 @@ export function compareTextDiff(beforeInput, afterInput) {
 
   return [`[SUMMARY] +${added} -${deleted} unchanged:${unchanged}`, "[CHUNK] @@ compare before after @@", ...output].join("\n");
 }
+
+function parseHunkHeader(line) {
+  const match = line.match(/^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    oldStart: Number(match[1]),
+    oldCount: Number(match[2] || "1"),
+    newStart: Number(match[3]),
+    newCount: Number(match[4] || "1"),
+  };
+}
+
+function stripPatchPrefix(line) {
+  if (/^(diff --git|index\s|---\s|\+\+\+\s|new file mode|deleted file mode|rename from|rename to|similarity index|dissimilarity index)/.test(line)) {
+    return null;
+  }
+
+  if (line.startsWith("\\ No newline")) {
+    return null;
+  }
+
+  return line;
+}
+
+export function applyUnifiedDiff(originalInput, patchInput) {
+  if (!originalInput && !patchInput) {
+    return "";
+  }
+
+  if (!patchInput.trim()) {
+    return originalInput;
+  }
+
+  const original = normalizeLines(originalInput);
+  const patch = normalizeLines(patchInput).map(stripPatchPrefix).filter((line) => line !== null);
+  const output = [];
+  let originalIndex = 0;
+  let patchIndex = 0;
+  let appliedHunks = 0;
+
+  while (patchIndex < patch.length) {
+    const header = parseHunkHeader(patch[patchIndex]);
+
+    if (!header) {
+      patchIndex += 1;
+      continue;
+    }
+
+    const targetIndex = Math.max(header.oldStart - 1, 0);
+
+    while (originalIndex < targetIndex) {
+      output.push(original[originalIndex]);
+      originalIndex += 1;
+    }
+
+    patchIndex += 1;
+
+    while (patchIndex < patch.length && !parseHunkHeader(patch[patchIndex])) {
+      const patchLine = patch[patchIndex];
+      const marker = patchLine[0];
+      const value = patchLine.slice(1);
+
+      if (marker === " ") {
+        if (original[originalIndex] !== value) {
+          return [
+            "Patch apply failed: context mismatch.",
+            `Expected: ${value}`,
+            `Actual: ${original[originalIndex] ?? ""}`,
+            `Original line: ${originalIndex + 1}`,
+          ].join("\n");
+        }
+
+        output.push(original[originalIndex]);
+        originalIndex += 1;
+      } else if (marker === "-") {
+        if (original[originalIndex] !== value) {
+          return [
+            "Patch apply failed: delete mismatch.",
+            `Expected to delete: ${value}`,
+            `Actual: ${original[originalIndex] ?? ""}`,
+            `Original line: ${originalIndex + 1}`,
+          ].join("\n");
+        }
+
+        originalIndex += 1;
+      } else if (marker === "+") {
+        output.push(value);
+      }
+
+      patchIndex += 1;
+    }
+
+    appliedHunks += 1;
+  }
+
+  if (appliedHunks === 0) {
+    return "Patch apply failed: no unified diff hunks found.";
+  }
+
+  while (originalIndex < original.length) {
+    output.push(original[originalIndex]);
+    originalIndex += 1;
+  }
+
+  return output.join("\n");
+}
