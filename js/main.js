@@ -1,15 +1,18 @@
-import { detectType } from "./detector.js";
+import { detectDetails, detectType } from "./detector.js";
 import { runTool } from "./router.js";
-import { applyUnifiedDiff, compareTextDiff } from "./tools/diffViewer.js";
+import { applyUnifiedDiff, compareTextDiff, mergeTextDiff } from "./tools/diffViewer.js";
 
 const inputArea = document.getElementById("inputArea");
 const outputArea = document.getElementById("outputArea");
 const toolSelect = document.getElementById("toolSelect");
 const languageSelect = document.getElementById("languageSelect");
 const detectedType = document.getElementById("detectedType");
+const detectConfidence = document.getElementById("detectConfidence");
+const detectReason = document.getElementById("detectReason");
 const sampleButton = document.getElementById("sampleButton");
 const formatButton = document.getElementById("formatButton");
 const clearButton = document.getElementById("clearButton");
+const resetButton = document.getElementById("resetButton");
 const copyButton = document.getElementById("copyButton");
 const copyStatus = document.getElementById("copyStatus");
 const jsonOptionsPanel = document.getElementById("jsonOptionsPanel");
@@ -23,9 +26,12 @@ const logTimeTo = document.getElementById("logTimeTo");
 const logContextLines = document.getElementById("logContextLines");
 const stackOptionsPanel = document.getElementById("stackOptionsPanel");
 const stackHideVendor = document.getElementById("stackHideVendor");
+const stackFrameFilter = document.getElementById("stackFrameFilter");
 const minifyOptionsPanel = document.getElementById("minifyOptionsPanel");
 const minifyModeSelect = document.getElementById("minifyModeSelect");
 const textOptionsPanel = document.getElementById("textOptionsPanel");
+const codeOptionsPanel = document.getElementById("codeOptionsPanel");
+const codeModeSelect = document.getElementById("codeModeSelect");
 const textMarkdownMode = document.getElementById("textMarkdownMode");
 const textDedupeLines = document.getElementById("textDedupeLines");
 const textSortLines = document.getElementById("textSortLines");
@@ -40,17 +46,20 @@ const diffBeforeArea = document.getElementById("diffBeforeArea");
 const diffAfterArea = document.getElementById("diffAfterArea");
 const previewSection = document.getElementById("previewSection");
 const previewOutput = document.getElementById("previewOutput");
+const processingSummary = document.getElementById("processingSummary");
+const warningBox = document.getElementById("warningBox");
+const advancedContent = document.getElementById("advancedContent");
 
 let copyStatusTimer;
 
 const samples = {
-  json: '{"user":{"id":1,"name":"Ada"},"items":[{"id":"a1","ok":true}]}',
-  log: '2026-05-17 10:00:00 INFO request_id=req-1 start\n2026-05-17 10:00:05 ERROR request_id=req-1 failed {"code":500}\n    at handler (app.js:1:2)',
-  code: 'function getName(user){if(user){if(user.profile){return user.profile.name;}}return "guest";}',
-  stack: 'TypeError: Cannot read properties\n    at handler (app.js:10:2)\n    at run (node_modules/lib/index.js:1:1)\nCaused by: Error: root',
-  minify: 'function x(a,b){if(a){return {url:"http://x.test",ok:true};}}',
-  diff: '@@ -1 +1 @@\n-old\n+new',
-  text: 'This is\nwrapped prose\n\n- keep\n- bullets',
+  json: '{"user":{"id":42,"name":"Ada","roles":["admin","reviewer"],"profile":{"active":true,"team":"platform"}},"meta":{"requestId":"req-2026-001","latencyMs":38},"items":[{"id":"a1","ok":true},{"id":"b2","ok":false,"error":null}]}',
+  log: '2026-05-18 10:00:00 INFO request_id=req-1 start user=42\n2026-05-18 10:00:03 WARN request_id=req-1 slow query {"duration":1280}\n2026-05-18 10:00:05 ERROR request_id=req-1 failed {"code":500,"path":"/api/users"}\n    at handler (src/app.ts:22:9)\n2026-05-18 10:00:06 DEBUG request_id=req-1 retry queued\n2026-05-18 10:00:07 TRACE request_id=req-1 done',
+  code: 'function getUserName(user){if(user){if(user.profile){if(user.profile.isActive){return user.profile.name;}}}return "guest";}',
+  stack: 'TypeError: Cannot read properties of undefined\n    at getUserName (src/components/UserCard.tsx:42:17)\n    at renderUser (src/app/users.ts:18:5)\n    at map (node_modules/react/cjs/react.development.js:100:3)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)',
+  minify: 'function loadUser(id){if(!id){return null;}const user={id:id,roles:["admin","reviewer"],active:true};return user;}',
+  diff: 'function config(){\n  return { retries: 2, region: "us" };\n}\n---\nfunction config(){\n  return { retries: 3, region: "jp" };\n}',
+  text: '  Incident summary\t\t\n\n\nService  degraded   for 12 minutes.  \n\nAction items:\n\t- rotate token\n\t- review alerts\n',
 };
 
 const translations = {
@@ -272,6 +281,7 @@ function getOptions() {
     },
     stack: {
       hideVendor: stackHideVendor ? stackHideVendor.checked : true,
+      filter: stackFrameFilter ? stackFrameFilter.value : "all",
     },
     minify: {
       mode: minifyModeSelect ? minifyModeSelect.value : "auto",
@@ -281,13 +291,17 @@ function getOptions() {
       dedupe: textDedupeLines ? textDedupeLines.checked : false,
       sort: textSortLines ? textSortLines.checked : false,
     },
+    code: {
+      mode: codeModeSelect ? codeModeSelect.value : "readability",
+    },
   };
 }
 
 export function processInput() {
   const input = inputArea.value;
   const selectedType = toolSelect.value;
-  const type = selectedType === "auto" ? detectType(input) : selectedType;
+  const details = detectDetails(input);
+  const type = selectedType === "auto" ? details.type : selectedType;
   const isManualDiff = selectedType === "diff";
   const diffMode = diffModeSelect ? diffModeSelect.value : "compare";
   const isDiffCompareMode = isManualDiff && diffMode === "compare";
@@ -295,9 +309,11 @@ export function processInput() {
   const usesTwoPanelDiff = isDiffCompareMode || isDiffApplyMode;
 
   detectedType.textContent = formatTypeLabel(type);
+  if (detectConfidence) detectConfidence.textContent = `Confidence: ${selectedType === "auto" ? details.confidence : "Manual"}`;
+  if (detectReason) detectReason.textContent = `Reason: ${selectedType === "auto" ? details.reason : "Manual tool selection overrides auto detection."}`;
 
   if (isDiffCompareMode && diffBeforeArea && diffAfterArea) {
-    outputArea.value = compareTextDiff(diffBeforeArea.value, diffAfterArea.value);
+    outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value);
   } else if (isDiffApplyMode && diffBeforeArea && diffAfterArea) {
     outputArea.value = applyUnifiedDiff(diffBeforeArea.value, diffAfterArea.value);
   } else {
@@ -307,6 +323,7 @@ export function processInput() {
   togglePanels(type, isManualDiff, usesTwoPanelDiff);
   updateDiffLabels(isDiffApplyMode);
   updatePreview(input, outputArea.value, usesTwoPanelDiff);
+  updateAdvancedView(outputArea.value);
 }
 
 function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
@@ -315,10 +332,56 @@ function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
   if (stackOptionsPanel) stackOptionsPanel.hidden = type !== "stack";
   if (minifyOptionsPanel) minifyOptionsPanel.hidden = type !== "minify";
   if (textOptionsPanel) textOptionsPanel.hidden = type !== "text";
+  if (codeOptionsPanel) codeOptionsPanel.hidden = type !== "code";
   if (diffModePanel) diffModePanel.hidden = !isManualDiff;
   if (diffComparePanel) diffComparePanel.hidden = !usesTwoPanelDiff;
   if (inputPanel) inputPanel.hidden = usesTwoPanelDiff;
   if (editorGrid) editorGrid.classList.toggle("output-only", usesTwoPanelDiff);
+}
+
+function clearElement(element) {
+  while (element && element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+}
+
+function getSection(output, name) {
+  const pattern = new RegExp(`\\[${name}\\]\\n([\\s\\S]*?)(?=\\n\\[[A-Z /]+\\]|$)`);
+  const match = output.match(pattern);
+  return match ? match[1].trim() : "";
+}
+
+function updateAdvancedView(output) {
+  if (!processingSummary || !warningBox || !advancedContent) return;
+
+  clearElement(processingSummary);
+  clearElement(advancedContent);
+  const summary = getSection(output, "SUMMARY");
+  const warning = getSection(output, "WARNING");
+
+  summary.split(/\r?\n/).filter(Boolean).slice(0, 12).forEach((line) => {
+    const card = document.createElement("div");
+    card.className = "summary-card";
+    const parts = line.split(":");
+    const strong = document.createElement("strong");
+    strong.textContent = parts.shift() || "Summary";
+    const span = document.createElement("span");
+    span.textContent = parts.join(":").trim() || "-";
+    card.append(strong, span);
+    processingSummary.appendChild(card);
+  });
+
+  warningBox.hidden = !warning;
+  warningBox.textContent = warning;
+
+  ["JSON TREE VIEW", "FRAME LIST", "DIFF BLOCKS", "SUGGESTIONS", "REASONS", "FORMATTED LOGS"].forEach((name) => {
+    const section = getSection(output, name);
+    if (!section) return;
+    const block = document.createElement("div");
+    block.className = "advanced-block";
+    block.textContent = `[${name}]\n${section}`;
+    advancedContent.appendChild(block);
+  });
 }
 
 function updateDiffLabels(isApplyMode) {
@@ -448,10 +511,21 @@ function clearAll() {
   processInput();
 }
 
+function resetAll() {
+  clearAll();
+  if (toolSelect) toolSelect.value = "auto";
+  if (diffModeSelect) diffModeSelect.value = "compare";
+  if (minifyModeSelect) minifyModeSelect.value = "auto";
+  if (codeModeSelect) codeModeSelect.value = "readability";
+  if (stackFrameFilter) stackFrameFilter.value = "all";
+  processInput();
+}
+
 inputArea.addEventListener("input", processInput);
 toolSelect.addEventListener("change", processInput);
 formatButton.addEventListener("click", processInput);
 clearButton.addEventListener("click", clearAll);
+if (resetButton) resetButton.addEventListener("click", resetAll);
 copyButton.addEventListener("click", copyOutput);
 if (sampleButton) sampleButton.addEventListener("click", fillSample);
 if (languageSelect) languageSelect.addEventListener("change", applyLanguage);
@@ -465,7 +539,9 @@ if (languageSelect) languageSelect.addEventListener("change", applyLanguage);
   logTimeTo,
   logContextLines,
   stackHideVendor,
+  stackFrameFilter,
   minifyModeSelect,
+  codeModeSelect,
   textMarkdownMode,
   textDedupeLines,
   textSortLines,

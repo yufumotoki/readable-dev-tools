@@ -2,18 +2,31 @@ function getErrorContext(input, message) {
   const positionMatch = message.match(/position (\d+)/i);
 
   if (!positionMatch) {
-    return "\nLocation: unavailable\nNear: " + input.slice(0, 80).replace(/\r?\n/g, "\\n");
+    return "\nLocation: unavailable\nNear: " + input.slice(0, 120).replace(/\r?\n/g, "\\n");
   }
 
   const position = Number(positionMatch[1]);
   const before = input.slice(0, position);
   const line = before.split(/\r?\n/).length;
   const column = before.split(/\r?\n/).pop().length + 1;
-  const contextStart = Math.max(position - 35, 0);
-  const contextEnd = Math.min(position + 35, input.length);
+  const contextStart = Math.max(position - 50, 0);
+  const contextEnd = Math.min(position + 50, input.length);
   const snippet = input.slice(contextStart, contextEnd).replace(/\r?\n/g, "\\n");
 
   return `\nLocation: line ${line}, column ${column}\nNear: ${snippet}`;
+}
+
+function inferJsonIssue(input, message) {
+  const hints = [];
+
+  if (/,\s*[}\]]/.test(input)) hints.push("trailing comma");
+  if (/'[^']*'\s*:|:\s*'[^']*'/.test(input)) hints.push("single quote");
+  if (/"\s*[\r\n]\s*"/.test(input) || /\d\s*[\r\n]\s*"/.test(input)) hints.push("missing comma");
+  if ((input.match(/\{/g) || []).length !== (input.match(/\}/g) || []).length) hints.push("unclosed bracket");
+  if ((input.match(/\[/g) || []).length !== (input.match(/\]/g) || []).length) hints.push("unclosed bracket");
+  if (/Unexpected token|Unexpected non-whitespace|position/i.test(message)) hints.push("unexpected token");
+
+  return [...new Set(hints)].join(", ") || "unknown parse error";
 }
 
 function parsePossiblyEncodedJSON(input) {
@@ -22,10 +35,7 @@ function parsePossiblyEncodedJSON(input) {
   if (typeof parsed === "string") {
     const nested = parsed.trim();
 
-    if (
-      (nested.startsWith("{") && nested.endsWith("}")) ||
-      (nested.startsWith("[") && nested.endsWith("]"))
-    ) {
+    if ((nested.startsWith("{") && nested.endsWith("}")) || (nested.startsWith("[") && nested.endsWith("]"))) {
       return JSON.parse(nested);
     }
   }
@@ -33,76 +43,76 @@ function parsePossiblyEncodedJSON(input) {
   return parsed;
 }
 
-function describeValue(value) {
-  if (Array.isArray(value)) {
-    return `array(${value.length})`;
-  }
+function parseJSONOrLines(text) {
+  try {
+    return { value: parsePossiblyEncodedJSON(text), mode: "JSON" };
+  } catch (error) {
+    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 
-  if (value && typeof value === "object") {
-    return `object(${Object.keys(value).length})`;
-  }
+    if (lines.length > 1) {
+      const values = [];
 
+      for (const line of lines) {
+        values.push(parsePossiblyEncodedJSON(line));
+      }
+
+      return { value: values, mode: "JSON Lines" };
+    }
+
+    throw error;
+  }
+}
+
+function typeOfJSON(value) {
+  if (Array.isArray(value)) return "array";
+  if (value === null) return "null";
   return typeof value;
 }
 
-function collectKeys(value, path = "$", rows = []) {
-  if (Array.isArray(value)) {
-    rows.push(`${path}: array(${value.length})`);
-    value.slice(0, 20).forEach((item, index) => collectKeys(item, `${path}[${index}]`, rows));
-    return rows;
-  }
-
-  if (value && typeof value === "object") {
-    const keys = Object.keys(value);
-    rows.push(`${path}: object(${keys.length})`);
-    keys.slice(0, 80).forEach((key) => {
-      const safeKey = /^[A-Za-z_$][\w$]*$/.test(key) ? `.${key}` : `[${JSON.stringify(key)}]`;
-      const nextPath = `${path}${safeKey}`;
-      const child = value[key];
-      rows.push(`${nextPath}: ${describeValue(child)}`);
-
-      if (child && typeof child === "object") {
-        collectKeys(child, nextPath, rows);
-      }
-    });
-  }
-
-  return rows;
+function describeValue(value) {
+  const type = typeOfJSON(value);
+  if (type === "array") return `array(${value.length})`;
+  if (type === "object") return `object(${Object.keys(value).length})`;
+  return type;
 }
 
-function summarizeJSON(value) {
-  const keys = collectKeys(value);
-  const rootType = describeValue(value);
-  return [
-    "[SUMMARY]",
-    `Root: ${rootType}`,
-    `Discovered paths: ${keys.length}`,
-    "",
-    "[KEYS]",
-    ...keys.slice(0, 120),
-    keys.length > 120 ? `... ${keys.length - 120} more paths` : "",
-  ].filter(Boolean).join("\n");
+function pathForKey(path, key) {
+  return /^[A-Za-z_$][\w$]*$/.test(key) ? `${path}.${key}` : `${path}[${JSON.stringify(key)}]`;
+}
+
+function walkJSON(value, path = "$", depth = 0, rows = [], stats = { objects: 0, arrays: 0, keys: 0, maxDepth: 0 }) {
+  const type = typeOfJSON(value);
+  stats.maxDepth = Math.max(stats.maxDepth, depth);
+
+  if (type === "array") {
+    stats.arrays += 1;
+    rows.push({ path, type, depth, value, label: `${path}: array(${value.length})` });
+    value.forEach((item, index) => walkJSON(item, `${path}[${index}]`, depth + 1, rows, stats));
+  } else if (type === "object") {
+    const keys = Object.keys(value);
+    stats.objects += 1;
+    stats.keys += keys.length;
+    rows.push({ path, type, depth, value, label: `${path}: object(${keys.length})` });
+    keys.forEach((key) => walkJSON(value[key], pathForKey(path, key), depth + 1, rows, stats));
+  } else {
+    rows.push({ path, type, depth, value, label: `${path}: ${type} = ${JSON.stringify(value)}` });
+  }
+
+  return { rows, stats };
 }
 
 function tokenizeJSONPath(path) {
   const normalized = path.trim();
-
-  if (!normalized || normalized === "$") {
-    return [];
-  }
+  if (!normalized || normalized === "$") return [];
 
   const tokens = [];
   const pattern = /\.([A-Za-z_$][\w$]*)|\[(\d+|".*?"|'.*?')\]/g;
   let match;
 
   while ((match = pattern.exec(normalized)) !== null) {
-    if (match[1]) {
-      tokens.push(match[1]);
-    } else if (/^\d+$/.test(match[2])) {
-      tokens.push(Number(match[2]));
-    } else {
-      tokens.push(match[2].slice(1, -1));
-    }
+    if (match[1]) tokens.push(match[1]);
+    else if (/^\d+$/.test(match[2])) tokens.push(Number(match[2]));
+    else tokens.push(match[2].slice(1, -1));
   }
 
   return tokens;
@@ -123,27 +133,68 @@ function getByPath(value, path) {
   return { found: true, value: cursor };
 }
 
-export function formatJSON(input, options = {}) {
-  const text = input.trim().replace(/^\uFEFF/, "");
+function matchesSearch(row, keySearch, valueSearch) {
+  const keyNeedle = keySearch.toLowerCase();
+  const valueNeedle = valueSearch.toLowerCase();
+  const keyHit = keyNeedle && row.path.toLowerCase().includes(keyNeedle);
+  const valueHit = valueNeedle && JSON.stringify(row.value).toLowerCase().includes(valueNeedle);
+  return keyHit || valueHit;
+}
 
-  if (!text) {
-    return "";
-  }
+function createTree(rows, keySearch, valueSearch) {
+  return rows.slice(0, 400).map((row) => {
+    const marker = matchesSearch(row, keySearch, valueSearch) ? " <<MATCH>>" : "";
+    const foldHint = row.type === "object" || row.type === "array" ? "[toggle]" : "        ";
+    return `${"  ".repeat(row.depth)}${foldHint} ${row.label}${marker}`;
+  }).join("\n");
+}
+
+export function analyzeJSON(input, options = {}) {
+  const text = input.trim().replace(/^\uFEFF/, "");
+  if (!text) return { ok: true, output: "", formatted: "", summary: "", tree: "", warning: "", selectedPath: "", selectedValue: "" };
+
+  const keySearch = (options.keySearch || options.search || "").trim();
+  const valueSearch = (options.valueSearch || "").trim();
+  const path = (options.path || "").trim();
 
   try {
-    const parsed = parsePossiblyEncodedJSON(text);
-    const formatted = JSON.stringify(parsed, null, 2);
-    const summary = summarizeJSON(parsed);
-    const path = (options.path || "").trim();
+    const parsed = parseJSONOrLines(text);
+    const formatted = JSON.stringify(parsed.value, null, 2);
+    const { rows, stats } = walkJSON(parsed.value);
+    const matches = rows.filter((row) => matchesSearch(row, keySearch, valueSearch));
+    const selected = path ? getByPath(parsed.value, path) : { found: false, value: undefined };
+    const selectedValue = path ? (selected.found ? JSON.stringify(selected.value, null, 2) : "Path not found") : "";
+    const summary = [
+      "[SUMMARY]",
+      `Mode: ${parsed.mode}`,
+      `Root: ${describeValue(parsed.value)}`,
+      `Objects: ${stats.objects}`,
+      `Arrays: ${stats.arrays}`,
+      `Keys: ${stats.keys}`,
+      `Max depth: ${stats.maxDepth}`,
+      `Tree nodes: ${rows.length}`,
+      `Search matches: ${matches.length}`,
+    ].join("\n");
+    const detail = path ? ["", "[SELECTED NODE]", `Path: ${path}`, `Type: ${selected.found ? typeOfJSON(selected.value) : "not-found"}`, "Value:", selectedValue].join("\n") : "";
+    const tree = createTree(rows, keySearch, valueSearch);
+    const output = [summary, detail, "", "[JSON TREE VIEW]", tree, "", "[FORMATTED JSON]", formatted].filter(Boolean).join("\n");
 
-    if (path) {
-      const result = getByPath(parsed, path);
-      const pathValue = result.found ? JSON.stringify(result.value, null, 2) : "Path not found";
-      return `${summary}\n\n[JSON PATH: ${path}]\n${pathValue}\n\n[FORMATTED]\n${formatted}`;
-    }
-
-    return `${summary}\n\n[FORMATTED]\n${formatted}`;
+    return { ok: true, output, formatted, summary, tree, warning: "", selectedPath: path, selectedValue };
   } catch (error) {
-    return `Invalid JSON: ${error.message}${getErrorContext(text, error.message)}`;
+    const issue = inferJsonIssue(text, error.message);
+    const output = [
+      "[ERROR]",
+      `Invalid JSON: ${error.message}`,
+      `Cause guess: ${issue}`,
+      getErrorContext(text, error.message),
+      "",
+      "[WARNING]",
+      "Rule-based JSON error inference. Please review the source around the reported location.",
+    ].join("\n");
+    return { ok: false, output, formatted: "", summary: "", tree: "", warning: `Cause guess: ${issue}`, selectedPath: "", selectedValue: "" };
   }
+}
+
+export function formatJSON(input, options = {}) {
+  return analyzeJSON(input, options).output;
 }

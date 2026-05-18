@@ -159,6 +159,106 @@ export function compareTextDiff(beforeInput, afterInput) {
   return [`[SUMMARY] +${added} -${deleted} unchanged:${unchanged}`, "[CHUNK] @@ compare before after @@", ...output].join("\n");
 }
 
+export function createMergeBlocks(leftInput, rightInput) {
+  const rows = createDiffRows(normalizeLines(leftInput), normalizeLines(rightInput));
+  const blocks = [];
+  let current = null;
+
+  rows.forEach((row) => {
+    if (row.type === "same") {
+      if (current) {
+        blocks.push(current);
+        current = null;
+      }
+      blocks.push({ type: "same", left: [row.text], right: [row.text], resolved: true, choice: "same" });
+      return;
+    }
+
+    if (!current) current = { type: "changed", left: [], right: [], resolved: false, choice: "unresolved" };
+    if (row.type === "del") current.left.push(row.text);
+    if (row.type === "add") current.right.push(row.text);
+  });
+
+  if (current) blocks.push(current);
+  return blocks;
+}
+
+export function buildMergedResult(blocks, choices = {}) {
+  const output = [];
+
+  blocks.forEach((block, index) => {
+    if (block.type === "same") {
+      output.push(...block.left);
+      return;
+    }
+
+    const choice = choices[index] || block.choice || "unresolved";
+    if (choice === "left") output.push(...block.left);
+    else if (choice === "right") output.push(...block.right);
+    else if (choice === "both") output.push(...block.left, ...block.right);
+    else {
+      output.push("<<<<<<< YOUR VERSION", ...block.left, "=======", ...block.right, ">>>>>>> OTHER VERSION");
+    }
+  });
+
+  return output.join("\n");
+}
+
+export function summarizeMergeBlocks(blocks, choices = {}) {
+  let changedBlocks = 0;
+  let unresolvedBlocks = 0;
+  let resolvedBlocks = 0;
+  let leftOnly = 0;
+  let rightOnly = 0;
+  let totalLines = 0;
+
+  blocks.forEach((block, index) => {
+    totalLines += Math.max(block.left.length, block.right.length);
+    if (block.type === "same") return;
+    changedBlocks += 1;
+    if (block.left.length && !block.right.length) leftOnly += block.left.length;
+    if (block.right.length && !block.left.length) rightOnly += block.right.length;
+    const choice = choices[index] || block.choice;
+    if (choice && choice !== "unresolved") resolvedBlocks += 1;
+    else unresolvedBlocks += 1;
+  });
+
+  return { totalLines, changedBlocks, unresolvedBlocks, resolvedBlocks, leftOnly, rightOnly };
+}
+
+export function mergeTextDiff(leftInput, rightInput, choices = {}) {
+  const blocks = createMergeBlocks(leftInput, rightInput);
+  const summary = summarizeMergeBlocks(blocks, choices);
+  const merged = buildMergedResult(blocks, choices);
+  const blockText = blocks.map((block, index) => {
+    if (block.type === "same") return `[BLOCK ${index}] SAME\n${block.left.join("\n")}`;
+    return [
+      `[BLOCK ${index}] CHANGED unresolved=${!(choices[index] && choices[index] !== "unresolved")}`,
+      "[YOUR VERSION]",
+      block.left.join("\n") || "(empty)",
+      "[OTHER VERSION]",
+      block.right.join("\n") || "(empty)",
+      "Actions: Use Left | Use Right | Use Both | Reset Block",
+    ].join("\n");
+  }).join("\n\n");
+
+  return [
+    "[SUMMARY]",
+    `Total lines: ${summary.totalLines}`,
+    `Changed blocks: ${summary.changedBlocks}`,
+    `Unresolved blocks: ${summary.unresolvedBlocks}`,
+    `Resolved blocks: ${summary.resolvedBlocks}`,
+    `Left only: ${summary.leftOnly}`,
+    `Right only: ${summary.rightOnly}`,
+    "",
+    "[DIFF BLOCKS]",
+    blockText,
+    "",
+    "[MERGED RESULT]",
+    merged,
+  ].join("\n");
+}
+
 function parseHunkHeader(line) {
   const match = line.match(/^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@/);
 

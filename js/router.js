@@ -13,7 +13,7 @@ export function runTool(type, input, options = {}) {
     case "log":
       return formatLog(input, options.log || {});
     case "code":
-      return refactorNestedCode(input);
+      return refactorNestedCode(input, options.code || {});
     case "stack":
       return formatStackTrace(input, options.stack || {});
     case "minify":

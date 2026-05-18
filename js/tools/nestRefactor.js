@@ -321,17 +321,82 @@ function formatTree(node, depth = 0) {
   return lines;
 }
 
-export function refactorNestedCode(input) {
+function collectCodeMetrics(code) {
+  const lines = code.split(/\r?\n/);
+  let depth = 0;
+  let maxDepth = 0;
+  let nestedBlocks = 0;
+  let elseAfterReturn = 0;
+  let forIf = 0;
+  const conditions = new Map();
+  const suggestions = [];
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    if (/^if\s*\(/.test(trimmed) && depth > 1) nestedBlocks += 1;
+    if (/^else\b/.test(trimmed) && /return\b/.test(lines[index - 1] || "")) elseAfterReturn += 1;
+    if (/^if\s*\(/.test(trimmed)) conditions.set(trimmed, (conditions.get(trimmed) || 0) + 1);
+    if (/^for\s*\(/.test(trimmed)) forIf += 1;
+    depth += (line.match(/\{/g) || []).length;
+    maxDepth = Math.max(maxDepth, depth);
+    depth -= (line.match(/\}/g) || []).length;
+  });
+
+  if (maxDepth >= 4) suggestions.push(`Nested depth warning: max depth ${maxDepth}. Consider guard clauses or extracted helpers.`);
+  if (elseAfterReturn > 0) suggestions.push("else after return detected. Removing else can improve readability without changing behavior.");
+  if (forIf > 0) suggestions.push("Loop with conditional logic detected. Early continue may reduce nesting when the condition is safe to invert.");
+  for (const [condition, count] of conditions.entries()) {
+    if (count > 1) suggestions.push(`Duplicate condition candidate: ${condition}`);
+  }
+
+  return { maxDepth, nestedBlocks, elseAfterReturn, forIf, duplicateConditions: [...conditions.values()].filter((count) => count > 1).length, suggestions };
+}
+
+function annotateSafeMode(formattedOriginal, metrics) {
+  const comments = [
+    "// Refactored by Readable Dev Tools",
+    "// Safe Mode: code body preserved; suggestions are added as comments.",
+    "",
+    "[SUGGESTIONS]",
+    ...(metrics.suggestions.length ? metrics.suggestions.map((item) => `// TODO: ${item}`) : ["// No high-confidence refactor suggestions found."]),
+    "",
+    "[REFACTORED]",
+    formattedOriginal,
+  ];
+  return comments.join("\n");
+}
+
+export function refactorNestedCode(input, options = {}) {
   const original = input.trim();
 
   if (!original) {
     return "";
   }
 
+  const mode = options.mode || "readability";
   const tree = parseCode(original);
+  const metrics = collectCodeMetrics(original);
+  const formattedOriginal = formatTree(parseCode(original)).join("\n");
+
+  if (mode === "safe") {
+    return [
+      annotateSafeMode(formattedOriginal, metrics),
+      "",
+      "[SUMMARY]",
+      `Mode: Safe Mode`,
+      `Nested blocks detected: ${metrics.nestedBlocks}`,
+      "Guard clauses applied: 0",
+      "Else blocks removed: 0",
+      `Continue statements suggested/applied: ${metrics.forIf}/0`,
+      "Unsafe transformations skipped: 1",
+      "",
+      "[WARNING]",
+      "Rule-based refactoring. Please review before production use.",
+    ].join("\n");
+  }
+
   tree.children = transformChildren(tree.children);
   const body = simplifyBooleanReturns(formatTree(tree).join("\n"));
-  const formattedOriginal = formatTree(parseCode(original)).join("\n");
   const reasons = [];
 
   if (body.includes("return Boolean(") || body.includes("return !(")) {
@@ -346,15 +411,33 @@ export function refactorNestedCode(input) {
     reasons.push("- Removed else after a branch that returns.");
   }
 
+  if (mode === "performance") {
+    reasons.push("- Performance Mode: added only conservative early-exit suggestions; avoided filter/map/reduce rewrites.");
+    metrics.suggestions.push("Performance review: prefer early continue inside loops when the inverted condition is side-effect free.");
+  }
+
   if (reasons.length === 0) {
     reasons.push("- Formatted code without applying risky behavior-changing refactors.");
   }
 
   const diff = createSimpleDiff(formattedOriginal, body);
+  const guardClauses = (body.match(/if \(!.+\) (return|continue)/g) || []).length;
+  const elseRemoved = formattedOriginal.includes("else {") && !body.includes("else {") ? 1 : 0;
 
   return [
     "// Refactored by Readable Dev Tools",
+    `// Mode: ${mode === "performance" ? "Performance Mode" : "Readability Mode"}`,
     "// Rules: preserve behavior, prefer early exits, reduce nesting, keep names and side effects unchanged.",
+    "",
+    "[SUMMARY]",
+    `Nested blocks detected: ${metrics.nestedBlocks}`,
+    `Guard clauses applied: ${guardClauses}`,
+    `Else blocks removed: ${elseRemoved}`,
+    `Continue statements suggested/applied: ${metrics.forIf}/${(body.match(/\bcontinue;/g) || []).length}`,
+    "Unsafe transformations skipped: 0",
+    "",
+    "[SUGGESTIONS]",
+    ...(metrics.suggestions.length ? metrics.suggestions.map((item) => `- ${item}`) : ["- No additional high-confidence suggestions."]),
     "",
     "[REASONS]",
     ...reasons,
@@ -364,6 +447,9 @@ export function refactorNestedCode(input) {
     "",
     "[REFACTORED]",
     body,
+    "",
+    "[WARNING]",
+    "Rule-based refactoring. Please review before production use.",
   ].join("\n");
 }
 

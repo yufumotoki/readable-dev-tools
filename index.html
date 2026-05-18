@@ -90,6 +90,7 @@
             <div class="detected">
               <span data-i18n="detectedLabel">Detected:</span>
               <strong id="detectedType">Empty</strong>
+              <small id="detectConfidence">Confidence: High</small>
             </div>
             <label class="tool-picker" for="toolSelect">
               <span data-i18n="toolLabel">Tool</span>
@@ -108,10 +109,13 @@
               <button id="sampleButton" type="button" class="secondary" data-i18n="sampleButton">Sample</button>
               <button id="formatButton" type="button" data-i18n="formatButton">Format / Refactor</button>
               <button id="clearButton" type="button" class="secondary" data-i18n="clearButton">Clear</button>
+              <button id="resetButton" type="button" class="secondary">Reset</button>
               <button id="copyButton" type="button" class="secondary" data-i18n="copyButton">Copy Output</button>
               <span id="copyStatus" class="copy-status" aria-live="polite"></span>
             </div>
           </div>
+
+          <div id="detectReason" class="processing-note">Reason: Input is empty.</div>
 
           <div id="jsonOptionsPanel" class="filter-panel" hidden>
             <label for="jsonPathInput">
@@ -125,10 +129,13 @@
               <span data-i18n="levelLabel">Level</span>
               <select id="logLevelFilter">
                 <option value="all" data-i18n-option="allLevels">All levels</option>
+                <option value="WARN+">WARN and ERROR</option>
+                <option value="DEBUG+">DEBUG / TRACE included</option>
                 <option value="ERROR">ERROR</option>
                 <option value="WARN">WARN</option>
                 <option value="INFO">INFO</option>
                 <option value="DEBUG">DEBUG</option>
+                <option value="TRACE">TRACE</option>
               </select>
             </label>
             <label for="logKeywordFilter">
@@ -154,6 +161,14 @@
           </div>
 
           <div id="stackOptionsPanel" class="filter-panel" hidden>
+            <label for="stackFrameFilter">
+              <span>Frame filter</span>
+              <select id="stackFrameFilter">
+                <option value="all">All frames</option>
+                <option value="app">App only</option>
+                <option value="dependency">Dependencies only</option>
+              </select>
+            </label>
             <label class="checkbox-control" for="stackHideVendor">
               <input id="stackHideVendor" type="checkbox" checked>
               <span data-i18n="foldVendorLabel">Fold vendor frames</span>
@@ -183,6 +198,17 @@
             <label class="checkbox-control" for="textSortLines">
               <input id="textSortLines" type="checkbox">
               <span data-i18n="sortLinesLabel">Sort lines</span>
+            </label>
+          </div>
+
+          <div id="codeOptionsPanel" class="filter-panel" hidden>
+            <label for="codeModeSelect">
+              <span>Refactor Mode</span>
+              <select id="codeModeSelect">
+                <option value="readability">Readability Mode</option>
+                <option value="performance">Performance Mode</option>
+                <option value="safe">Safe Mode</option>
+              </select>
             </label>
           </div>
 
@@ -219,6 +245,13 @@
               <textarea id="outputArea" spellcheck="false" readonly></textarea>
             </label>
           </div>
+
+          <section id="advancedView" class="advanced-view" aria-labelledby="advanced-title">
+            <h2 id="advanced-title">Advanced View</h2>
+            <div id="processingSummary" class="summary-grid"></div>
+            <div id="warningBox" class="warning-box" hidden></div>
+            <div id="advancedContent" class="advanced-content"></div>
+          </section>
         </section>
 
         <section id="previewSection" class="refactor-rules" aria-labelledby="preview-title" hidden>

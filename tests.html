@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'; media-src 'none'"
+    >
+    <title>Readable Dev Tools Tests</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="styles/style.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="site-header">
+        <div>
+          <p class="eyebrow">Readable Dev Tools</p>
+          <h1>Local Test Runner</h1>
+          <p class="lead">Runs 100+ browser-only tests with no network calls and no stored input data.</p>
+        </div>
+      </header>
+      <main>
+        <section class="security-panel">
+          <div class="security-heading">
+            <h2>Test Summary</h2>
+            <p>No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.</p>
+          </div>
+          <div class="badge-grid">
+            <span class="security-badge">100+ Tests</span>
+            <span class="security-badge">No External Libraries</span>
+            <span class="security-badge">Static Site</span>
+          </div>
+        </section>
+        <pre id="testResults" class="preview-output">Running tests...</pre>
+      </main>
+    </div>
+    <script type="module" src="js/tests/runTests.js"></script>
+  </body>
+</html>

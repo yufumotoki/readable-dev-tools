@@ -1,102 +1,51 @@
-function isStructuredLine(line) {
-  return /^(\s*[-*]|\s*\d+\.|\s*[A-Za-z0-9_-]+:|\s*#|\s*\|)/.test(line);
-}
-
-function formatPlainParagraph(paragraph) {
-  const lines = paragraph.split("\n");
-  const isStructured = lines.some(isStructuredLine);
-
-  if (isStructured || lines.length <= 1) {
-    return paragraph;
-  }
-
-  return lines
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .join(" ");
-}
-
-function splitMarkdownBlocks(text) {
-  const blocks = [];
-  const lines = text.split("\n");
-  let current = [];
-  let inFence = false;
-
-  for (const line of lines) {
-    if (/^\s*```/.test(line)) {
-      current.push(line);
-
-      if (inFence) {
-        blocks.push({ type: "raw", text: current.join("\n") });
-        current = [];
-      } else if (current.length > 1) {
-        blocks.push({ type: "plain", text: current.slice(0, -1).join("\n") });
-        current = [line];
-      }
-
-      inFence = !inFence;
-      continue;
-    }
-
-    current.push(line);
-  }
-
-  if (current.length > 0) {
-    blocks.push({ type: inFence ? "raw" : "plain", text: current.join("\n") });
-  }
-
-  return blocks;
+function countWords(text) {
+  const matches = text.trim().match(/\S+/g);
+  return matches ? matches.length : 0;
 }
 
 export function formatText(input, options = {}) {
-  let normalizedLines = input
-    .trim()
+  if (!input) return "";
+
+  let lines = input
     .replace(/\t/g, "  ")
-    .replace(/\u00a0/g, " ")
     .split(/\r?\n/)
-    .map((line) => line.replace(/[ \t]+$/g, "").replace(/[ \t]{3,}/g, "  "));
+    .map((line) => line.replace(/[ \t]+$/g, ""));
 
   if (options.dedupe) {
     const seen = new Set();
-    normalizedLines = normalizedLines.filter((line) => {
-      if (seen.has(line)) {
-        return false;
-      }
-
-      seen.add(line);
+    lines = lines.filter((line) => {
+      const key = line.trim();
+      if (!key) return true;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
   }
 
   if (options.sort) {
-    normalizedLines = [...normalizedLines].sort((a, b) => a.localeCompare(b));
+    lines = [...lines].sort((a, b) => a.localeCompare(b));
   }
 
-  const normalized = normalizedLines
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n");
+  const collapsed = [];
+  let blank = false;
+  for (const line of lines) {
+    if (!line.trim()) {
+      if (!blank) collapsed.push("");
+      blank = true;
+    } else {
+      collapsed.push(line);
+      blank = false;
+    }
+  }
 
-  let output = splitMarkdownBlocks(normalized)
-    .map((block) => {
-      if (block.type === "raw") {
-        return options.markdown === false ? formatPlainParagraph(block.text) : block.text;
-      }
-
-      return block.text
-        .split(/\n\n/)
-        .map(formatPlainParagraph)
-        .join("\n\n");
-    })
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n");
-
+  const cleaned = collapsed.join("\n").trim();
   return [
     "[SUMMARY]",
-    `Lines: ${input.split(/\r?\n/).length} -> ${output.split(/\r?\n/).length}`,
-    `Duplicate removal: ${options.dedupe ? "on" : "off"}`,
-    `Sort: ${options.sort ? "on" : "off"}`,
+    `Line count: ${cleaned ? cleaned.split(/\r?\n/).length : 0}`,
+    `Character count: ${cleaned.length}`,
+    `Word count: ${countWords(cleaned)}`,
     "",
     "[FORMATTED]",
-    output,
+    cleaned,
   ].join("\n");
 }
