@@ -60,6 +60,7 @@ const translations = {
     languageLabel: "Language",
     languageEnglish: "English",
     languageJapanese: "Japanese",
+    homeLink: "Home",
     securityTitle: "No data leaves your browser.",
     securityText: "Your input is never sent to a server and is processed only in browser memory.",
     detectedLabel: "Detected:",
@@ -129,6 +130,9 @@ const translations = {
     aboutLink: "About",
     copied: "Copied",
     copyFailed: "Copy failed",
+    seoHomeTitle: "Secure browser-only developer tools",
+    seoHomeCopy: "Readable Dev Tools is a secure local developer toolkit for engineers who need to format sensitive logs, JSON, stack traces, diffs, and source code without uploading data to external servers.",
+    seoSecurityLine: "No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.",
   },
   ja: {
     heroTitle: "\u8cbc\u308b\u3060\u3051\u3067\u3001\u8aad\u3081\u308b\u3002",
@@ -136,6 +140,7 @@ const translations = {
     languageLabel: "\u8a00\u8a9e",
     languageEnglish: "\u82f1\u8a9e",
     languageJapanese: "\u65e5\u672c\u8a9e",
+    homeLink: "\u30db\u30fc\u30e0",
     securityTitle: "\u30c7\u30fc\u30bf\u306f\u30d6\u30e9\u30a6\u30b6\u306e\u5916\u306b\u51fa\u307e\u305b\u3093\u3002",
     securityText: "\u5165\u529b\u3055\u308c\u305f\u5185\u5bb9\u306f\u30b5\u30fc\u30d0\u30fc\u306b\u9001\u4fe1\u3055\u308c\u305a\u3001\u30d6\u30e9\u30a6\u30b6\u5185\u306e\u30e1\u30e2\u30ea\u4e0a\u3067\u306e\u307f\u51e6\u7406\u3055\u308c\u307e\u3059\u3002",
     detectedLabel: "\u5224\u5b9a:",
@@ -205,6 +210,9 @@ const translations = {
     aboutLink: "\u3053\u306e\u30b5\u30a4\u30c8\u306b\u3064\u3044\u3066",
     copied: "\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f",
     copyFailed: "\u30b3\u30d4\u30fc\u5931\u6557",
+    seoHomeTitle: "\u5b89\u5168\u306a\u30d6\u30e9\u30a6\u30b6\u5b8c\u7d50\u306e\u958b\u767a\u8005\u30c4\u30fc\u30eb",
+    seoHomeCopy: "Readable Dev Tools\u306f\u3001\u6a5f\u5bc6\u6027\u306e\u9ad8\u3044\u30ed\u30b0\u3001JSON\u3001stack trace\u3001diff\u3001\u30bd\u30fc\u30b9\u30b3\u30fc\u30c9\u3092\u5916\u90e8\u30b5\u30fc\u30d0\u30fc\u3078\u9001\u4fe1\u305b\u305a\u306b\u6574\u5f62\u30fb\u78ba\u8a8d\u3057\u305f\u3044\u30a8\u30f3\u30b8\u30cb\u30a2\u5411\u3051\u306e\u30ed\u30fc\u30ab\u30eb\u958b\u767a\u30c4\u30fc\u30eb\u3067\u3059\u3002",
+    seoSecurityLine: "\u30c7\u30fc\u30bf\u306f\u30d6\u30e9\u30a6\u30b6\u306e\u5916\u306b\u51fa\u307e\u305b\u3093\u3002100% \u30ed\u30fc\u30ab\u30eb\u51e6\u7406\u3002API\u547c\u3073\u51fa\u3057\u306a\u3057\u3002\u4fdd\u5b58\u306a\u3057\u3002\u30d6\u30e9\u30a6\u30b6\u5b8c\u7d50\u306e\u958b\u767a\u8005\u30c4\u30fc\u30eb\u3067\u3059\u3002",
   },
 };
 

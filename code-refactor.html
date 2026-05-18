@@ -8,11 +8,21 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'; media-src 'none'"
     >
-    <title>Secure Code Refactor - Readable Dev Tools</title>
-    <meta name="description" content="Secure browser-only code refactor tool. Simplify readable JavaScript and TypeScript-style code locally without uploading source code.">
+    <title>Secure Code Refactor Tool - Browser-Only Nested If Refactor</title>
+    <meta name="description" content="Refactor deeply nested JavaScript and TypeScript code locally in your browser. Browser-only code refactor tool with no uploads.">
     <link rel="canonical" href="https://readable-dev-tools.pages.dev/code-refactor.html">
-    <link rel="icon" type="image/png" href="/develop_tool_icon.png">
-    <link rel="apple-touch-icon" href="/develop_tool_icon.png">
+    <meta property="og:title" content="Secure Code Refactor Tool - Browser-Only Nested If Refactor">
+    <meta property="og:description" content="Refactor deeply nested JavaScript and TypeScript code locally in your browser. Browser-only code refactor tool with no uploads.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://readable-dev-tools.pages.dev/code-refactor.html">
+    <meta property="og:image" content="https://readable-dev-tools.pages.dev/assets/ogp.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Secure Code Refactor Tool - Browser-Only Nested If Refactor">
+    <meta name="twitter:description" content="Refactor deeply nested JavaScript and TypeScript code locally in your browser. Browser-only code refactor tool with no uploads.">
+    <meta name="twitter:image" content="https://readable-dev-tools.pages.dev/assets/ogp.png">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="stylesheet" href="styles/style.css">
   </head>
   <body>
@@ -20,38 +30,59 @@
       <header class="site-header">
         <div>
           <p class="eyebrow">Readable Dev Tools</p>
-          <h1>Secure Code Refactor</h1>
-          <p class="lead">Refactor JavaScript and TypeScript-style code locally with safety-first guard clause rules.</p>
+          <h1>Secure Code Refactor Tool</h1>
+          <p class="lead">Refactor nested if statements and simplify JavaScript or TypeScript-style code locally in your browser.</p>
         </div>
       </header>
 
       <main>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/json-formatter.html">JSON Formatter</a>
+          <a href="/log-formatter.html">Log Formatter</a>
+          <a href="/stack-trace-formatter.html">Stack Trace Formatter</a>
+          <a href="/diff-viewer.html">Diff Viewer</a>
+          <a href="/minify-beautifier.html">Minify Beautifier</a>
+          <a href="/code-refactor.html">Code Refactor</a>
+          <a href="/privacy.html">Privacy</a>
+          <a href="/about.html">About</a>
+        </nav>
+
         <section class="security-panel" aria-labelledby="code-title">
           <div class="security-heading">
-            <h2 id="code-title">Local code refactoring</h2>
-            <p>Simplify safe nested if patterns, remove else after return, and format code without sending source code to a server.</p>
+            <h2 id="code-title">Browser-only refactoring</h2>
+            <p>No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.</p>
           </div>
           <div class="badge-grid">
-            <span class="security-badge">Secure Code Refactor</span>
-            <span class="security-badge">No Source Uploads</span>
-            <span class="security-badge">No Tracking</span>
+            <span class="security-badge">Nested If Refactor</span>
+            <span class="security-badge">Guard Clauses</span>
+            <span class="security-badge">Local Code Review</span>
           </div>
         </section>
 
-        <section class="refactor-rules" aria-labelledby="code-rules-title">
-          <h2 id="code-rules-title">Safety Rules</h2>
-          <div class="rule-grid">
-            <p>Only transforms patterns that can be handled with local deterministic rules.</p>
-            <p>Preserves names, string literals, and side-effectful code.</p>
-            <p>Avoids risky early returns when following work would change behavior.</p>
-            <p>No data leaves your browser.</p>
+        <section class="seo-copy" aria-labelledby="code-copy-title">
+          <h2 id="code-copy-title">Refactor nested if statements</h2>
+          <p>The Secure Code Refactor Tool helps convert nested if code into guard clauses where possible, remove else-after-return patterns, and show a before/after diff with change reasons.</p>
+          <p>Browser-only refactoring is useful when code snippets include internal business logic, private function names, customer-related checks, or source code that should not be uploaded to AI tools or external formatters.</p>
+          <ul class="content-list">
+            <li>Refactor nested if statements where possible.</li>
+            <li>Convert safe nested if code into guard clauses.</li>
+            <li>Show before/after diff and change reasons.</li>
+            <li>No data leaves your browser.</li>
+          </ul>
+          <div class="link-list">
+            <a href="/">Open Tool</a>
+            <a href="/diff-viewer.html">Diff Viewer</a>
+            <a href="/privacy.html">Privacy</a>
           </div>
         </section>
       </main>
 
       <footer class="site-footer">
         <p>No data leaves your browser.</p>
-        <p><a href="/">Open Tool</a></p>
+        <p>
+          <a href="/">Home</a> / <a href="/json-formatter.html">JSON Formatter</a> / <a href="/log-formatter.html">Log Formatter</a> / <a href="/stack-trace-formatter.html">Stack Trace Formatter</a> / <a href="/diff-viewer.html">Diff Viewer</a> / <a href="/minify-beautifier.html">Minify Beautifier</a> / <a href="/code-refactor.html">Code Refactor</a> / <a href="/privacy.html">Privacy</a> / <a href="/about.html">About</a>
+        </p>
       </footer>
     </div>
   </body>

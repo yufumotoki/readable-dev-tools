@@ -8,11 +8,21 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'; media-src 'none'"
     >
-    <title>Secure Diff Viewer - Readable Dev Tools</title>
-    <meta name="description" content="Secure browser-only diff viewer. Compare text and apply unified diff patches locally without uploading your data.">
+    <title>Secure Diff Viewer - Browser-Only Text Compare Tool</title>
+    <meta name="description" content="Compare text and code diffs locally in your browser. Secure diff viewer with no uploads, no API calls, and no storage.">
     <link rel="canonical" href="https://readable-dev-tools.pages.dev/diff-viewer.html">
-    <link rel="icon" type="image/png" href="/develop_tool_icon.png">
-    <link rel="apple-touch-icon" href="/develop_tool_icon.png">
+    <meta property="og:title" content="Secure Diff Viewer - Browser-Only Text Compare Tool">
+    <meta property="og:description" content="Compare text and code diffs locally in your browser. Secure diff viewer with no uploads, no API calls, and no storage.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://readable-dev-tools.pages.dev/diff-viewer.html">
+    <meta property="og:image" content="https://readable-dev-tools.pages.dev/assets/ogp.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Secure Diff Viewer - Browser-Only Text Compare Tool">
+    <meta name="twitter:description" content="Compare text and code diffs locally in your browser. Secure diff viewer with no uploads, no API calls, and no storage.">
+    <meta name="twitter:image" content="https://readable-dev-tools.pages.dev/assets/ogp.png">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="stylesheet" href="styles/style.css">
   </head>
   <body>
@@ -21,28 +31,58 @@
         <div>
           <p class="eyebrow">Readable Dev Tools</p>
           <h1>Secure Diff Viewer</h1>
-          <p class="lead">Compare text and apply unified diff patches locally in your browser. No uploads. No API calls. No storage.</p>
+          <p class="lead">Compare text locally and inspect code changes without uploading source code or configuration data.</p>
         </div>
       </header>
 
       <main>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/json-formatter.html">JSON Formatter</a>
+          <a href="/log-formatter.html">Log Formatter</a>
+          <a href="/stack-trace-formatter.html">Stack Trace Formatter</a>
+          <a href="/diff-viewer.html">Diff Viewer</a>
+          <a href="/minify-beautifier.html">Minify Beautifier</a>
+          <a href="/code-refactor.html">Code Refactor</a>
+          <a href="/privacy.html">Privacy</a>
+          <a href="/about.html">About</a>
+        </nav>
+
         <section class="security-panel" aria-labelledby="diff-title">
           <div class="security-heading">
-            <h2 id="diff-title">Browser-only diff viewing</h2>
-            <p>Compare two texts, classify existing diff output, or apply a unified diff patch while keeping source changes private.</p>
+            <h2 id="diff-title">Browser-only diff viewer</h2>
+            <p>No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.</p>
           </div>
           <div class="badge-grid">
-            <span class="security-badge">Secure Diff Viewer</span>
+            <span class="security-badge">Compare Text Locally</span>
             <span class="security-badge">Apply Unified Diff</span>
-            <span class="security-badge">No Data Transfer</span>
-            <span class="security-badge">No Storage</span>
+            <span class="security-badge">No Uploads</span>
+          </div>
+        </section>
+
+        <section class="seo-copy" aria-labelledby="diff-copy-title">
+          <h2 id="diff-copy-title">Compare text and code locally</h2>
+          <p>This Secure Diff Viewer compares before and after text, formats existing diff output, and can apply unified diff patches in the browser.</p>
+          <p>It is useful for AI code changes, config changes, JSON changes, log changes, and reviewing patches that may contain private project details.</p>
+          <ul class="content-list">
+            <li>Compare text locally with add and delete markers.</li>
+            <li>Review code, config, JSON, and log changes.</li>
+            <li>Apply unified diff patches to pasted content.</li>
+            <li>No data leaves your browser.</li>
+          </ul>
+          <div class="link-list">
+            <a href="/">Open Tool</a>
+            <a href="/code-refactor.html">Code Refactor</a>
+            <a href="/privacy.html">Privacy</a>
           </div>
         </section>
       </main>
 
       <footer class="site-footer">
         <p>No data leaves your browser.</p>
-        <p><a href="/">Open Tool</a></p>
+        <p>
+          <a href="/">Home</a> / <a href="/json-formatter.html">JSON Formatter</a> / <a href="/log-formatter.html">Log Formatter</a> / <a href="/stack-trace-formatter.html">Stack Trace Formatter</a> / <a href="/diff-viewer.html">Diff Viewer</a> / <a href="/minify-beautifier.html">Minify Beautifier</a> / <a href="/code-refactor.html">Code Refactor</a> / <a href="/privacy.html">Privacy</a> / <a href="/about.html">About</a>
+        </p>
       </footer>
     </div>
   </body>

@@ -8,11 +8,21 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'; media-src 'none'"
     >
-    <title>Local Stack Trace Formatter - Readable Dev Tools</title>
-    <meta name="description" content="Local browser-only stack trace formatter for JavaScript, Python, and Java traces. No uploads or API calls.">
+    <title>Secure Stack Trace Formatter - Browser-Only Error Formatter</title>
+    <meta name="description" content="Format stack traces locally in your browser. Secure stack trace formatter for JavaScript, TypeScript, Node.js, and frontend errors.">
     <link rel="canonical" href="https://readable-dev-tools.pages.dev/stack-trace-formatter.html">
-    <link rel="icon" type="image/png" href="/develop_tool_icon.png">
-    <link rel="apple-touch-icon" href="/develop_tool_icon.png">
+    <meta property="og:title" content="Secure Stack Trace Formatter - Browser-Only Error Formatter">
+    <meta property="og:description" content="Format stack traces locally in your browser. Secure stack trace formatter for JavaScript, TypeScript, Node.js, and frontend errors.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://readable-dev-tools.pages.dev/stack-trace-formatter.html">
+    <meta property="og:image" content="https://readable-dev-tools.pages.dev/assets/ogp.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Secure Stack Trace Formatter - Browser-Only Error Formatter">
+    <meta name="twitter:description" content="Format stack traces locally in your browser. Secure stack trace formatter for JavaScript, TypeScript, Node.js, and frontend errors.">
+    <meta name="twitter:image" content="https://readable-dev-tools.pages.dev/assets/ogp.png">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="stylesheet" href="styles/style.css">
   </head>
   <body>
@@ -20,27 +30,59 @@
       <header class="site-header">
         <div>
           <p class="eyebrow">Readable Dev Tools</p>
-          <h1>Local Stack Trace Formatter</h1>
-          <p class="lead">Clean up stack traces locally, including Error, Caused by, and stack frame lines.</p>
+          <h1>Secure Stack Trace Formatter</h1>
+          <p class="lead">Format JavaScript and TypeScript stack traces locally for safer debugging of Node.js and frontend errors.</p>
         </div>
       </header>
 
       <main>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/json-formatter.html">JSON Formatter</a>
+          <a href="/log-formatter.html">Log Formatter</a>
+          <a href="/stack-trace-formatter.html">Stack Trace Formatter</a>
+          <a href="/diff-viewer.html">Diff Viewer</a>
+          <a href="/minify-beautifier.html">Minify Beautifier</a>
+          <a href="/code-refactor.html">Code Refactor</a>
+          <a href="/privacy.html">Privacy</a>
+          <a href="/about.html">About</a>
+        </nav>
+
         <section class="security-panel" aria-labelledby="stack-title">
           <div class="security-heading">
-            <h2 id="stack-title">Readable stack traces without uploads</h2>
-            <p>Format JavaScript, Python, and Java stack traces while keeping sensitive paths and code context private.</p>
+            <h2 id="stack-title">Browser-only stack trace formatting</h2>
+            <p>No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.</p>
           </div>
           <div class="badge-grid">
-            <span class="security-badge">Local Stack Trace Formatter</span>
-            <span class="security-badge">Browser-only</span>
-            <span class="security-badge">No API Calls</span>
+            <span class="security-badge">JavaScript</span>
+            <span class="security-badge">TypeScript</span>
+            <span class="security-badge">Node.js</span>
+          </div>
+        </section>
+
+        <section class="seo-copy" aria-labelledby="stack-copy-title">
+          <h2 id="stack-copy-title">Debug errors safely</h2>
+          <p>This Secure Stack Trace Formatter organizes long error output into readable lines, highlights error messages, and folds noisy vendor frames so you can focus on application code.</p>
+          <p>Browser-only stack trace formatting is useful for debugging errors safely when traces include internal file paths, source maps, user context, or private package names.</p>
+          <ul class="content-list">
+            <li>Format JavaScript and TypeScript stack traces.</li>
+            <li>Organize Node.js and frontend error output.</li>
+            <li>Fold node_modules and vendor frames.</li>
+            <li>No data leaves your browser.</li>
+          </ul>
+          <div class="link-list">
+            <a href="/">Open Tool</a>
+            <a href="/log-formatter.html">Log Formatter</a>
+            <a href="/privacy.html">Privacy</a>
           </div>
         </section>
       </main>
 
       <footer class="site-footer">
-        <p><a href="/">Open Tool</a></p>
+        <p>No data leaves your browser.</p>
+        <p>
+          <a href="/">Home</a> / <a href="/json-formatter.html">JSON Formatter</a> / <a href="/log-formatter.html">Log Formatter</a> / <a href="/stack-trace-formatter.html">Stack Trace Formatter</a> / <a href="/diff-viewer.html">Diff Viewer</a> / <a href="/minify-beautifier.html">Minify Beautifier</a> / <a href="/code-refactor.html">Code Refactor</a> / <a href="/privacy.html">Privacy</a> / <a href="/about.html">About</a>
+        </p>
       </footer>
     </div>
   </body>
