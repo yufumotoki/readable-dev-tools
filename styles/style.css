@@ -569,6 +569,18 @@ textarea[readonly] {
   line-height: 1.55;
 }
 
+.advanced-block pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.block-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .tool-cards {
   margin-top: 30px;
 }

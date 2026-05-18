@@ -1,6 +1,6 @@
 import { detectDetails, detectType } from "./detector.js";
 import { runTool } from "./router.js";
-import { applyUnifiedDiff, compareTextDiff, mergeTextDiff } from "./tools/diffViewer.js";
+import { applyUnifiedDiff, buildMergedResult, createMergeBlocks, mergeTextDiff, summarizeMergeBlocks } from "./tools/diffViewer.js";
 
 const inputArea = document.getElementById("inputArea");
 const outputArea = document.getElementById("outputArea");
@@ -51,6 +51,7 @@ const warningBox = document.getElementById("warningBox");
 const advancedContent = document.getElementById("advancedContent");
 
 let copyStatusTimer;
+let mergeChoices = {};
 
 const samples = {
   json: '{"user":{"id":42,"name":"Ada","roles":["admin","reviewer"],"profile":{"active":true,"team":"platform"}},"meta":{"requestId":"req-2026-001","latencyMs":38},"items":[{"id":"a1","ok":true},{"id":"b2","ok":false,"error":null}]}',
@@ -313,17 +314,20 @@ export function processInput() {
   if (detectReason) detectReason.textContent = `Reason: ${selectedType === "auto" ? details.reason : "Manual tool selection overrides auto detection."}`;
 
   if (isDiffCompareMode && diffBeforeArea && diffAfterArea) {
-    outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value);
+    outputArea.readOnly = false;
+    outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value, mergeChoices);
   } else if (isDiffApplyMode && diffBeforeArea && diffAfterArea) {
+    outputArea.readOnly = true;
     outputArea.value = applyUnifiedDiff(diffBeforeArea.value, diffAfterArea.value);
   } else {
+    outputArea.readOnly = true;
     outputArea.value = runTool(type, input, getOptions());
   }
 
   togglePanels(type, isManualDiff, usesTwoPanelDiff);
   updateDiffLabels(isDiffApplyMode);
   updatePreview(input, outputArea.value, usesTwoPanelDiff);
-  updateAdvancedView(outputArea.value);
+  updateAdvancedView(outputArea.value, isDiffCompareMode);
 }
 
 function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
@@ -351,7 +355,63 @@ function getSection(output, name) {
   return match ? match[1].trim() : "";
 }
 
-function updateAdvancedView(output) {
+function createMergeButton(label, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "secondary";
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+function updateDiffMergeOutput() {
+  const blocks = createMergeBlocks(diffBeforeArea.value, diffAfterArea.value);
+  const summary = summarizeMergeBlocks(blocks, mergeChoices);
+  outputArea.value = [
+    "[SUMMARY]",
+    `Total lines: ${summary.totalLines}`,
+    `Changed blocks: ${summary.changedBlocks}`,
+    `Unresolved blocks: ${summary.unresolvedBlocks}`,
+    `Resolved blocks: ${summary.resolvedBlocks}`,
+    `Left only: ${summary.leftOnly}`,
+    `Right only: ${summary.rightOnly}`,
+    "",
+    "[MERGED RESULT]",
+    buildMergedResult(blocks, mergeChoices),
+  ].join("\n");
+  updateAdvancedView(outputArea.value, true);
+}
+
+function renderMergeControls() {
+  if (!advancedContent || !diffBeforeArea || !diffAfterArea) return;
+  const blocks = createMergeBlocks(diffBeforeArea.value, diffAfterArea.value);
+  blocks.forEach((block, index) => {
+    if (block.type === "same") return;
+
+    const blockEl = document.createElement("div");
+    blockEl.className = "advanced-block";
+    const text = document.createElement("pre");
+    text.textContent = [
+      `[BLOCK ${index}] ${mergeChoices[index] || "unresolved"}`,
+      "[YOUR VERSION]",
+      block.left.join("\n") || "(empty)",
+      "[OTHER VERSION]",
+      block.right.join("\n") || "(empty)",
+    ].join("\n");
+    const actions = document.createElement("div");
+    actions.className = "block-actions";
+    actions.append(
+      createMergeButton("Use Left", () => { mergeChoices[index] = "left"; updateDiffMergeOutput(); }),
+      createMergeButton("Use Right", () => { mergeChoices[index] = "right"; updateDiffMergeOutput(); }),
+      createMergeButton("Use Both", () => { mergeChoices[index] = "both"; updateDiffMergeOutput(); }),
+      createMergeButton("Reset Block", () => { delete mergeChoices[index]; updateDiffMergeOutput(); })
+    );
+    blockEl.append(text, actions);
+    advancedContent.appendChild(blockEl);
+  });
+}
+
+function updateAdvancedView(output, includeMergeControls = false) {
   if (!processingSummary || !warningBox || !advancedContent) return;
 
   clearElement(processingSummary);
@@ -382,6 +442,10 @@ function updateAdvancedView(output) {
     block.textContent = `[${name}]\n${section}`;
     advancedContent.appendChild(block);
   });
+
+  if (includeMergeControls) {
+    renderMergeControls();
+  }
 }
 
 function updateDiffLabels(isApplyMode) {
@@ -500,6 +564,7 @@ function clearAll() {
   if (diffBeforeArea) diffBeforeArea.value = "";
   if (diffAfterArea) diffAfterArea.value = "";
   if (diffModeSelect) diffModeSelect.value = "compare";
+  mergeChoices = {};
   if (logLevelFilter) logLevelFilter.value = "all";
   if (logKeywordFilter) logKeywordFilter.value = "";
   if (logCaseSensitive) logCaseSensitive.checked = false;
