@@ -1,6 +1,6 @@
 import { detectDetails, detectType } from "./detector.js";
 import { runTool } from "./router.js";
-import { applyUnifiedDiff, buildMergedResult, createMergeBlocks, mergeTextDiff, summarizeMergeBlocks } from "./tools/diffViewer.js";
+import { applyUnifiedDiff, buildMergedResult, compareTextDiff, createMergeBlocks, mergeTextDiff, summarizeMergeBlocks } from "./tools/diffViewer.js";
 
 const inputArea = document.getElementById("inputArea");
 const outputArea = document.getElementById("outputArea");
@@ -47,6 +47,11 @@ const diffAfterLabel = document.getElementById("diffAfterLabel");
 const diffBeforeArea = document.getElementById("diffBeforeArea");
 const diffMergedArea = document.getElementById("diffMergedArea");
 const diffAfterArea = document.getElementById("diffAfterArea");
+const copyMergedButton = document.getElementById("copyMergedButton");
+const copyLeftButton = document.getElementById("copyLeftButton");
+const copyRightButton = document.getElementById("copyRightButton");
+const resetMergedButton = document.getElementById("resetMergedButton");
+const clearDiffButton = document.getElementById("clearDiffButton");
 const previewSection = document.getElementById("previewSection");
 const previewOutput = document.getElementById("previewOutput");
 const processingSummary = document.getElementById("processingSummary");
@@ -56,6 +61,7 @@ const advancedContent = document.getElementById("advancedContent");
 let copyStatusTimer;
 let mergeChoices = {};
 let activeOutputElement = null;
+let diffSyncingScroll = false;
 
 const samples = {
   json: '{"user":{"id":42,"name":"Ada","roles":["admin","reviewer"],"profile":{"active":true,"team":"platform"}},"meta":{"requestId":"req-2026-001","latencyMs":38},"items":[{"id":"a1","ok":true},{"id":"b2","ok":false,"error":null}]}',
@@ -63,7 +69,8 @@ const samples = {
   code: 'function getUserName(user){if(user){if(user.profile){if(user.profile.isActive){return user.profile.name;}}}return "guest";}',
   stack: 'TypeError: Cannot read properties of undefined\n    at getUserName (src/components/UserCard.tsx:42:17)\n    at renderUser (src/app/users.ts:18:5)\n    at map (node_modules/react/cjs/react.development.js:100:3)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)',
   minify: 'function loadUser(id){if(!id){return null;}const user={id:id,roles:["admin","reviewer"],active:true};return user;}',
-  diff: 'function config(){\n  return { retries: 2, region: "us" };\n}\n---\nfunction config(){\n  return { retries: 3, region: "jp" };\n}',
+  diffLeft: 'function processUser(user) {\n  if (user) {\n    if (user.isActive) {\n      if (user.profile) {\n        return {\n          id: user.id,\n          name: user.profile.name,\n          status: "active"\n        };\n      }\n    }\n  }\n\n  return null;\n}\n\nconst apiUrl = "https://dev-api.example.com";\nconst timeout = 3000;\n\nconsole.log("User processing started");',
+  diffRight: 'function processUser(user) {\n  if (!user) return null;\n  if (!user.isActive) return null;\n  if (!user.profile) return null;\n\n  return {\n    id: user.id,\n    name: user.profile.name,\n    status: "active"\n  };\n}\n\nconst apiUrl = "https://prod-api.example.com";\nconst timeout = 5000;\n\nconsole.log("User processing completed");',
   text: '  Incident summary\t\t\n\n\nService  degraded   for 12 minutes.  \n\nAction items:\n\t- rotate token\n\t- review alerts\n',
 };
 
@@ -322,17 +329,13 @@ export function processInput() {
   if (isDiffCompareMode && diffBeforeArea && diffAfterArea) {
     outputArea.readOnly = false;
     outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value, mergeChoices);
-    if (diffMergedArea) {
-      diffMergedArea.value = getSection(outputArea.value, "MERGED RESULT");
-      activeOutputElement = diffMergedArea;
-    }
+    renderDiffMergedView();
+    activeOutputElement = diffMergedArea;
   } else if (isDiffApplyMode && diffBeforeArea && diffAfterArea) {
     outputArea.readOnly = true;
     outputArea.value = applyUnifiedDiff(diffBeforeArea.value, diffAfterArea.value);
-    if (diffMergedArea) {
-      diffMergedArea.value = getSection(outputArea.value, "APPLIED RESULT") || outputArea.value;
-      activeOutputElement = diffMergedArea;
-    }
+    renderPlainMergedView(getSection(outputArea.value, "APPLIED RESULT") || outputArea.value);
+    activeOutputElement = diffMergedArea;
   } else {
     outputArea.readOnly = true;
     outputArea.value = runTool(type, input, getOptions());
@@ -342,7 +345,8 @@ export function processInput() {
   togglePanels(type, isManualDiff, usesTwoPanelDiff);
   updateDiffLabels(isDiffApplyMode);
   updatePreview(input, outputArea.value, usesTwoPanelDiff);
-  updateAdvancedView(outputArea.value, isDiffCompareMode);
+  updateAdvancedView(outputArea.value, false);
+  autoResizeDiffInputs();
 }
 
 function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
@@ -380,6 +384,115 @@ function createMergeButton(label, onClick) {
   return button;
 }
 
+function readTextFromElement(element) {
+  if (!element) return "";
+  if ("value" in element) return element.value;
+  return element.dataset.copyText || element.textContent || "";
+}
+
+function renderPlainMergedView(text) {
+  if (!diffMergedArea) return;
+  clearElement(diffMergedArea);
+  diffMergedArea.dataset.copyText = text;
+  const pre = document.createElement("pre");
+  pre.className = "diff-plain-result";
+  pre.textContent = text || "";
+  diffMergedArea.appendChild(pre);
+}
+
+function appendDiffLine(parent, text, className, lineNumber = "") {
+  const row = document.createElement("div");
+  row.className = `diff-line ${className || ""}`.trim();
+  const number = document.createElement("span");
+  number.className = "diff-line-number";
+  number.textContent = lineNumber ? String(lineNumber) : "";
+  const code = document.createElement("span");
+  code.className = "diff-line-code";
+  code.textContent = text === "" ? " " : text;
+  row.append(number, code);
+  parent.appendChild(row);
+}
+
+function appendChoiceLines(parent, lines, className, startLine) {
+  if (!lines.length) {
+    appendDiffLine(parent, "(empty)", className, startLine || "");
+    return;
+  }
+
+  lines.forEach((line, offset) => {
+    appendDiffLine(parent, line, className, startLine ? startLine + offset : "");
+  });
+}
+
+function updateDiffOutputFromChoices() {
+  outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value, mergeChoices);
+  renderDiffMergedView();
+  updateAdvancedView(outputArea.value, false);
+  autoResizeDiffInputs();
+}
+
+function renderDiffMergedView() {
+  if (!diffMergedArea || !diffBeforeArea || !diffAfterArea) return;
+
+  clearElement(diffMergedArea);
+  const blocks = createMergeBlocks(diffBeforeArea.value, diffAfterArea.value);
+  diffMergedArea.dataset.copyText = buildMergedResult(blocks, mergeChoices);
+
+  blocks.forEach((block, index) => {
+    if (block.type === "same") {
+      appendDiffLine(diffMergedArea, block.left[0] || "", "diff-same", block.leftStart);
+      return;
+    }
+
+    const choice = mergeChoices[index] || "unresolved";
+    const blockEl = document.createElement("section");
+    blockEl.className = `diff-merge-block ${choice === "unresolved" ? "is-unresolved" : "is-resolved"}`;
+
+    const heading = document.createElement("div");
+    heading.className = "diff-block-heading";
+    heading.textContent = choice === "unresolved"
+      ? `Different / \u5dee\u5206 ${index} - Unresolved / \u672a\u89e3\u6c7a`
+      : `Different / \u5dee\u5206 ${index} - Resolved / \u89e3\u6c7a\u6e08\u307f: ${choice}`;
+    blockEl.appendChild(heading);
+
+    if (choice === "left" || choice === "both") appendChoiceLines(blockEl, block.left, "diff-left-candidate diff-resolved-line", block.leftStart);
+    if (choice === "right" || choice === "both") appendChoiceLines(blockEl, block.right, "diff-right-candidate diff-resolved-line", block.rightStart);
+
+    if (choice === "unresolved") {
+      const candidates = document.createElement("div");
+      candidates.className = "diff-candidates";
+
+      const leftCandidate = document.createElement("div");
+      leftCandidate.className = "diff-candidate diff-candidate-left";
+      const leftTitle = document.createElement("strong");
+      leftTitle.textContent = "Left candidate / \u5de6\u5019\u88dc";
+      leftCandidate.appendChild(leftTitle);
+      appendChoiceLines(leftCandidate, block.left, "diff-left-candidate", block.leftStart);
+
+      const rightCandidate = document.createElement("div");
+      rightCandidate.className = "diff-candidate diff-candidate-right";
+      const rightTitle = document.createElement("strong");
+      rightTitle.textContent = "Right candidate / \u53f3\u5019\u88dc";
+      rightCandidate.appendChild(rightTitle);
+      appendChoiceLines(rightCandidate, block.right, "diff-right-candidate", block.rightStart);
+
+      candidates.append(leftCandidate, rightCandidate);
+      blockEl.appendChild(candidates);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "block-actions";
+    actions.append(
+      createMergeButton("\u2190 Use Left / \u5de6\u3092\u63a1\u7528", () => { mergeChoices[index] = "left"; updateDiffOutputFromChoices(); }),
+      createMergeButton("Use Right / \u53f3\u3092\u63a1\u7528 \u2192", () => { mergeChoices[index] = "right"; updateDiffOutputFromChoices(); }),
+      createMergeButton("Use Both / \u4e21\u65b9\u63a1\u7528", () => { mergeChoices[index] = "both"; updateDiffOutputFromChoices(); }),
+      createMergeButton("Reset / \u623b\u3059", () => { delete mergeChoices[index]; updateDiffOutputFromChoices(); })
+    );
+    blockEl.appendChild(actions);
+    diffMergedArea.appendChild(blockEl);
+  });
+}
+
 function updateDiffMergeOutput() {
   const blocks = createMergeBlocks(diffBeforeArea.value, diffAfterArea.value);
   const summary = summarizeMergeBlocks(blocks, mergeChoices);
@@ -396,7 +509,7 @@ function updateDiffMergeOutput() {
     buildMergedResult(blocks, mergeChoices),
   ].join("\n");
   if (diffMergedArea) {
-    diffMergedArea.value = getSection(outputArea.value, "MERGED RESULT");
+    renderDiffMergedView();
     activeOutputElement = diffMergedArea;
   }
   updateAdvancedView(outputArea.value, true);
@@ -531,10 +644,10 @@ function fillSample() {
       diffBeforeArea.value = 'function hello() {\n  return "old";\n}\n';
       diffAfterArea.value = '--- a/app.js\n+++ b/app.js\n@@ -1,3 +1,4 @@\n function hello() {\n-  return "old";\n+  const value = "new";\n+  return value;\n }\n';
     } else if (diffModeSelect.value === "format") {
-      inputArea.value = samples.diff;
+      inputArea.value = compareTextDiff(samples.diffLeft, samples.diffRight);
     } else {
-      diffBeforeArea.value = "one\ntwo\nthree";
-      diffAfterArea.value = "one\nTWO\nthree\nfour";
+      diffBeforeArea.value = samples.diffLeft;
+      diffAfterArea.value = samples.diffRight;
     }
   } else {
     inputArea.value = samples[selectedType] || samples.text;
@@ -556,7 +669,7 @@ function resetCopyStatus(message = "") {
 
 async function copyOutput() {
   const target = activeOutputElement || outputArea;
-  const text = target.value;
+  const text = readTextFromElement(target);
 
   if (!text) {
     resetCopyStatus("");
@@ -567,10 +680,16 @@ async function copyOutput() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
     } else {
-      target.focus();
-      target.select();
+      if ("select" in target) {
+        target.focus();
+        target.select();
+      } else {
+        outputArea.value = text;
+        outputArea.focus();
+        outputArea.select();
+      }
       document.execCommand("copy");
-      target.setSelectionRange(0, 0);
+      if ("setSelectionRange" in target) target.setSelectionRange(0, 0);
     }
 
     resetCopyStatus(t("copied"));
@@ -583,7 +702,10 @@ function clearAll() {
   inputArea.value = "";
   outputArea.value = "";
   if (diffBeforeArea) diffBeforeArea.value = "";
-  if (diffMergedArea) diffMergedArea.value = "";
+  if (diffMergedArea) {
+    diffMergedArea.dataset.copyText = "";
+    clearElement(diffMergedArea);
+  }
   if (diffAfterArea) diffAfterArea.value = "";
   if (diffModeSelect) diffModeSelect.value = "compare";
   mergeChoices = {};
@@ -608,6 +730,82 @@ function resetAll() {
   processInput();
 }
 
+function resetMergedOnly() {
+  mergeChoices = {};
+  updateDiffOutputFromChoices();
+}
+
+function clearDiffOnly() {
+  if (diffBeforeArea) diffBeforeArea.value = "";
+  if (diffAfterArea) diffAfterArea.value = "";
+  if (diffMergedArea) {
+    diffMergedArea.dataset.copyText = "";
+    clearElement(diffMergedArea);
+  }
+  mergeChoices = {};
+  outputArea.value = "";
+  if (processingSummary) clearElement(processingSummary);
+  if (advancedContent) clearElement(advancedContent);
+  if (warningBox) {
+    warningBox.textContent = "";
+    warningBox.hidden = true;
+  }
+  resetCopyStatus("");
+  autoResizeDiffInputs();
+}
+
+async function copyPlainText(text) {
+  if (!text) {
+    resetCopyStatus("");
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      outputArea.value = text;
+      outputArea.focus();
+      outputArea.select();
+      document.execCommand("copy");
+      outputArea.setSelectionRange(0, 0);
+    }
+    resetCopyStatus(t("copied"));
+  } catch (error) {
+    resetCopyStatus(t("copyFailed"));
+  }
+}
+
+function autoResizeTextarea(textarea) {
+  if (!textarea) return;
+  textarea.style.height = "auto";
+  const nextHeight = Math.max(320, Math.min(textarea.scrollHeight + 4, Math.round(window.innerHeight * 0.72)));
+  textarea.style.height = `${nextHeight}px`;
+}
+
+function autoResizeDiffInputs() {
+  autoResizeTextarea(diffBeforeArea);
+  autoResizeTextarea(diffAfterArea);
+}
+
+function syncDiffScroll(source) {
+  if (diffSyncingScroll) return;
+  const panes = [diffBeforeArea, diffMergedArea, diffAfterArea].filter(Boolean);
+  if (!panes.includes(source)) return;
+
+  const maxSource = Math.max(source.scrollHeight - source.clientHeight, 1);
+  const ratio = source.scrollTop / maxSource;
+  diffSyncingScroll = true;
+  panes.forEach((pane) => {
+    if (pane === source) return;
+    const maxTarget = Math.max(pane.scrollHeight - pane.clientHeight, 0);
+    pane.scrollTop = maxTarget * ratio;
+  });
+  window.requestAnimationFrame(() => {
+    diffSyncingScroll = false;
+  });
+}
+
 inputArea.addEventListener("input", processInput);
 toolSelect.addEventListener("change", processInput);
 formatButton.addEventListener("click", processInput);
@@ -616,6 +814,14 @@ if (resetButton) resetButton.addEventListener("click", resetAll);
 copyButton.addEventListener("click", copyOutput);
 if (sampleButton) sampleButton.addEventListener("click", fillSample);
 if (languageSelect) languageSelect.addEventListener("change", applyLanguage);
+if (copyMergedButton) copyMergedButton.addEventListener("click", () => copyPlainText(readTextFromElement(diffMergedArea)));
+if (copyLeftButton) copyLeftButton.addEventListener("click", () => copyPlainText(diffBeforeArea ? diffBeforeArea.value : ""));
+if (copyRightButton) copyRightButton.addEventListener("click", () => copyPlainText(diffAfterArea ? diffAfterArea.value : ""));
+if (resetMergedButton) resetMergedButton.addEventListener("click", resetMergedOnly);
+if (clearDiffButton) clearDiffButton.addEventListener("click", clearDiffOnly);
+if (diffBeforeArea) diffBeforeArea.addEventListener("scroll", () => syncDiffScroll(diffBeforeArea));
+if (diffMergedArea) diffMergedArea.addEventListener("scroll", () => syncDiffScroll(diffMergedArea));
+if (diffAfterArea) diffAfterArea.addEventListener("scroll", () => syncDiffScroll(diffAfterArea));
 
 [
   jsonPathInput,

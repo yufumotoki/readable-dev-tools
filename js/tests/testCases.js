@@ -194,4 +194,124 @@ addMany("text", "text", 5, (index) => ({
   cases.push({ id, tool: "text", name: id.replace(/-/g, " "), input, expectedContains, shouldNotContain: ["\t"], notes: "Text formatter edge coverage." });
 });
 
+[
+  {
+    id: "diff-ux-001",
+    name: "identical left and right",
+    input: "alpha\nbeta",
+    afterInput: "alpha\nbeta",
+    summary: { commonLines: 2, diffBlocks: 0, unresolvedBlocks: 0 },
+  },
+  {
+    id: "diff-ux-002",
+    name: "one line changed",
+    input: "alpha\nold\nomega",
+    afterInput: "alpha\nnew\nomega",
+    summary: { commonLines: 2, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["old"],
+    right: ["new"],
+    both: ["old", "new"],
+  },
+  {
+    id: "diff-ux-003",
+    name: "left only line",
+    input: "alpha\nleft-only\nomega",
+    afterInput: "alpha\nomega",
+    summary: { commonLines: 2, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["left-only"],
+    right: ["alpha\nomega"],
+    both: ["left-only"],
+  },
+  {
+    id: "diff-ux-004",
+    name: "right only line",
+    input: "alpha\nomega",
+    afterInput: "alpha\nright-only\nomega",
+    summary: { commonLines: 2, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["alpha\nomega"],
+    right: ["right-only"],
+    both: ["right-only"],
+  },
+  {
+    id: "diff-ux-005",
+    name: "multiple diff blocks",
+    input: "a\nold-1\nsame\nold-2\nz",
+    afterInput: "a\nnew-1\nsame\nnew-2\nz",
+    summary: { commonLines: 3, diffBlocks: 2, unresolvedBlocks: 2 },
+    left: ["old-1"],
+    right: ["new-1"],
+    both: ["old-1", "new-1"],
+  },
+  {
+    id: "diff-ux-006",
+    name: "blank lines preserved",
+    input: "a\n\nold\nz",
+    afterInput: "a\n\nnew\nz",
+    summary: { commonLines: 3, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["old"],
+    right: ["new"],
+    both: ["old", "new"],
+  },
+  {
+    id: "diff-ux-007",
+    name: "indentation difference",
+    input: "function x() {\n  return 1;\n}",
+    afterInput: "function x() {\n    return 1;\n}",
+    summary: { commonLines: 2, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["  return 1;"],
+    right: ["    return 1;"],
+    both: ["  return 1;", "    return 1;"],
+  },
+  {
+    id: "diff-ux-008",
+    name: "japanese text difference",
+    input: "\u3053\u3093\u306b\u3061\u306f\n\u65e7\u30c6\u30ad\u30b9\u30c8",
+    afterInput: "\u3053\u3093\u306b\u3061\u306f\n\u65b0\u30c6\u30ad\u30b9\u30c8",
+    summary: { commonLines: 1, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["\u65e7\u30c6\u30ad\u30b9\u30c8"],
+    right: ["\u65b0\u30c6\u30ad\u30b9\u30c8"],
+    both: ["\u65e7\u30c6\u30ad\u30b9\u30c8", "\u65b0\u30c6\u30ad\u30b9\u30c8"],
+  },
+  {
+    id: "diff-ux-009",
+    name: "crlf lf mixed",
+    input: "a\r\nb\r\nc",
+    afterInput: "a\nb\nc",
+    summary: { commonLines: 3, diffBlocks: 0, unresolvedBlocks: 0 },
+  },
+  {
+    id: "diff-ux-010",
+    name: "load sample diff",
+    input: "const apiUrl = \"https://dev-api.example.com\";\nconst timeout = 3000;",
+    afterInput: "const apiUrl = \"https://prod-api.example.com\";\nconst timeout = 5000;",
+    summary: { commonLines: 0, diffBlocks: 1, unresolvedBlocks: 1 },
+    left: ["dev-api", "3000"],
+    right: ["prod-api", "5000"],
+    both: ["dev-api", "prod-api"],
+  },
+].forEach((test) => {
+  const choices = { 0: "left", 1: "left", 2: "left", 3: "left", 4: "left" };
+  const rightChoices = { 0: "right", 1: "right", 2: "right", 3: "right", 4: "right" };
+  const bothChoices = { 0: "both", 1: "both", 2: "both", 3: "both", 4: "both" };
+  cases.push({
+    id: test.id,
+    tool: "diff",
+    name: test.name,
+    input: test.input,
+    afterInput: test.afterInput,
+    expectedContains: ["Total left lines / \u5de6\u884c\u6570:", "Common lines / \u5171\u901a\u884c:", "Diff blocks / \u5dee\u5206\u30d6\u30ed\u30c3\u30af:"],
+    shouldNotContain: ["TypeError"],
+    diffExpectations: {
+      summary: test.summary,
+      leftChoices: choices,
+      rightChoices,
+      bothChoices,
+      useLeftContains: test.left || [],
+      useRightContains: test.right || [],
+      useBothContains: test.both || [],
+    },
+    notes: "Diff Viewer three-pane merge UX behavior.",
+  });
+});
+
 export const testCases = cases;

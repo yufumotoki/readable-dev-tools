@@ -198,7 +198,7 @@
             </label>
           </div>
 
-          <div id="diffModePanel" class="filter-panel" hidden>
+          <div id="diffModePanel" class="filter-panel diff-actions-panel" hidden>
             <label for="diffModeSelect">
               <span data-i18n="diffModeLabel">Diff Mode</span>
               <select id="diffModeSelect">
@@ -207,6 +207,11 @@
                 <option value="apply" data-i18n-option="applyUnifiedDiff">Apply unified diff</option>
               </select>
             </label>
+            <button id="copyMergedButton" type="button" class="secondary">Copy Merged Result / &#32113;&#21512;&#32080;&#26524;&#12434;&#12467;&#12500;&#12540;</button>
+            <button id="copyLeftButton" type="button" class="secondary">Copy Left / &#24038;&#12434;&#12467;&#12500;&#12540;</button>
+            <button id="copyRightButton" type="button" class="secondary">Copy Right / &#21491;&#12434;&#12467;&#12500;&#12540;</button>
+            <button id="resetMergedButton" type="button" class="secondary">Reset Merged / &#32113;&#21512;&#32080;&#26524;&#12434;&#12522;&#12475;&#12483;&#12488;</button>
+            <button id="clearDiffButton" type="button" class="secondary">Clear All / &#12377;&#12409;&#12390;&#12463;&#12522;&#12450;</button>
           </div>
 
           <div id="diffComparePanel" class="compare-panel diff-three-pane" hidden>
@@ -214,10 +219,10 @@
               <span id="diffBeforeLabel" class="panel-title">Your Version / &#33258;&#20998;&#12398;&#29256;</span>
               <textarea id="diffBeforeArea" spellcheck="false" data-i18n-placeholder="diffBeforePlaceholder" placeholder="Paste the original text"></textarea>
             </label>
-            <label class="editor-panel" for="diffMergedArea">
+            <section class="editor-panel" aria-labelledby="diffMergedLabel">
               <span class="panel-title">Merged Result / &#32113;&#21512;&#32080;&#26524;</span>
-              <textarea id="diffMergedArea" spellcheck="false" placeholder="Merged result appears here"></textarea>
-            </label>
+              <div id="diffMergedArea" class="diff-merged-view" tabindex="0" role="region" aria-label="Merged Result"></div>
+            </section>
             <label class="editor-panel" for="diffAfterArea">
               <span id="diffAfterLabel" class="panel-title">Other Version / &#30456;&#25163;&#12398;&#29256;</span>
               <textarea id="diffAfterArea" spellcheck="false" data-i18n-placeholder="diffAfterPlaceholder" placeholder="Paste the changed text"></textarea>

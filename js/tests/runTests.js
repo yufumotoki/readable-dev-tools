@@ -1,6 +1,6 @@
 import { runTool } from "../router.js";
 import { detectDetails } from "../detector.js";
-import { mergeTextDiff } from "../tools/diffViewer.js";
+import { buildMergedResult, createMergeBlocks, mergeTextDiff, summarizeMergeBlocks } from "../tools/diffViewer.js";
 import { testCases } from "./testCases.js";
 
 function runCase(testCase) {
@@ -30,6 +30,31 @@ function runCase(testCase) {
   }
   for (const needle of testCase.shouldNotContain || []) {
     if (needle && output.includes(needle)) missing.push(`unexpected ${needle}`);
+  }
+
+  if (testCase.tool === "diff" && testCase.diffExpectations) {
+    const blocks = createMergeBlocks(testCase.input, testCase.afterInput || "");
+    const baseSummary = summarizeMergeBlocks(blocks, {});
+    const leftSummary = summarizeMergeBlocks(blocks, testCase.diffExpectations.leftChoices || {});
+    const resetSummary = summarizeMergeBlocks(blocks, {});
+    const leftMerged = buildMergedResult(blocks, testCase.diffExpectations.leftChoices || {});
+    const rightMerged = buildMergedResult(blocks, testCase.diffExpectations.rightChoices || {});
+    const bothMerged = buildMergedResult(blocks, testCase.diffExpectations.bothChoices || {});
+
+    for (const [key, expected] of Object.entries(testCase.diffExpectations.summary || {})) {
+      if (baseSummary[key] !== expected) missing.push(`diff summary ${key} expected ${expected} got ${baseSummary[key]}`);
+    }
+    for (const needle of testCase.diffExpectations.useLeftContains || []) {
+      if (!leftMerged.includes(needle)) missing.push(`use left missing ${needle}`);
+    }
+    for (const needle of testCase.diffExpectations.useRightContains || []) {
+      if (!rightMerged.includes(needle)) missing.push(`use right missing ${needle}`);
+    }
+    for (const needle of testCase.diffExpectations.useBothContains || []) {
+      if (!bothMerged.includes(needle)) missing.push(`use both missing ${needle}`);
+    }
+    if (leftSummary.resolvedBlocks < 1 && baseSummary.diffBlocks > 0) missing.push("use left did not resolve a block");
+    if (resetSummary.unresolvedBlocks !== baseSummary.unresolvedBlocks) missing.push("reset did not restore unresolved count");
   }
 
   return {

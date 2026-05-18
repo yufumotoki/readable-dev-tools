@@ -51,6 +51,7 @@ export function formatDiff(input) {
 }
 
 function normalizeLines(text) {
+  if (!text) return [];
   return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
 }
 
@@ -83,25 +84,25 @@ function createDiffRows(beforeLines, afterLines) {
 
   while (beforeIndex < beforeLength && afterIndex < afterLength) {
     if (beforeLines[beforeIndex] === afterLines[afterIndex]) {
-      rows.push({ type: "same", text: beforeLines[beforeIndex] });
+      rows.push({ type: "same", text: beforeLines[beforeIndex], leftLine: beforeIndex + 1, rightLine: afterIndex + 1 });
       beforeIndex += 1;
       afterIndex += 1;
     } else if (table[beforeIndex + 1][afterIndex] >= table[beforeIndex][afterIndex + 1]) {
-      rows.push({ type: "del", text: beforeLines[beforeIndex] });
+      rows.push({ type: "del", text: beforeLines[beforeIndex], leftLine: beforeIndex + 1, rightLine: afterIndex + 1 });
       beforeIndex += 1;
     } else {
-      rows.push({ type: "add", text: afterLines[afterIndex] });
+      rows.push({ type: "add", text: afterLines[afterIndex], leftLine: beforeIndex + 1, rightLine: afterIndex + 1 });
       afterIndex += 1;
     }
   }
 
   while (beforeIndex < beforeLength) {
-    rows.push({ type: "del", text: beforeLines[beforeIndex] });
+    rows.push({ type: "del", text: beforeLines[beforeIndex], leftLine: beforeIndex + 1, rightLine: afterIndex + 1 });
     beforeIndex += 1;
   }
 
   while (afterIndex < afterLength) {
-    rows.push({ type: "add", text: afterLines[afterIndex] });
+    rows.push({ type: "add", text: afterLines[afterIndex], leftLine: beforeIndex + 1, rightLine: afterIndex + 1 });
     afterIndex += 1;
   }
 
@@ -117,14 +118,14 @@ function createLinearDiffRows(beforeLines, afterLines) {
     const afterLine = afterLines[index];
 
     if (beforeLine === afterLine) {
-      rows.push({ type: "same", text: beforeLine || "" });
+      rows.push({ type: "same", text: beforeLine || "", leftLine: index + 1, rightLine: index + 1 });
     } else {
       if (beforeLine !== undefined) {
-        rows.push({ type: "del", text: beforeLine });
+        rows.push({ type: "del", text: beforeLine, leftLine: index + 1, rightLine: index + 1 });
       }
 
       if (afterLine !== undefined) {
-        rows.push({ type: "add", text: afterLine });
+        rows.push({ type: "add", text: afterLine, leftLine: index + 1, rightLine: index + 1 });
       }
     }
   }
@@ -160,7 +161,9 @@ export function compareTextDiff(beforeInput, afterInput) {
 }
 
 export function createMergeBlocks(leftInput, rightInput) {
-  const rows = createDiffRows(normalizeLines(leftInput), normalizeLines(rightInput));
+  const leftLines = normalizeLines(leftInput);
+  const rightLines = normalizeLines(rightInput);
+  const rows = createDiffRows(leftLines, rightLines);
   const blocks = [];
   let current = null;
 
@@ -170,11 +173,29 @@ export function createMergeBlocks(leftInput, rightInput) {
         blocks.push(current);
         current = null;
       }
-      blocks.push({ type: "same", left: [row.text], right: [row.text], resolved: true, choice: "same" });
+      blocks.push({
+        type: "same",
+        left: [row.text],
+        right: [row.text],
+        leftStart: row.leftLine,
+        rightStart: row.rightLine,
+        resolved: true,
+        choice: "same",
+      });
       return;
     }
 
-    if (!current) current = { type: "changed", left: [], right: [], resolved: false, choice: "unresolved" };
+    if (!current) {
+      current = {
+        type: "changed",
+        left: [],
+        right: [],
+        leftStart: row.leftLine,
+        rightStart: row.rightLine,
+        resolved: false,
+        choice: "unresolved",
+      };
+    }
     if (row.type === "del") current.left.push(row.text);
     if (row.type === "add") current.right.push(row.text);
   });
@@ -205,17 +226,21 @@ export function buildMergedResult(blocks, choices = {}) {
 }
 
 export function summarizeMergeBlocks(blocks, choices = {}) {
-  let changedBlocks = 0;
+  let diffBlocks = 0;
   let unresolvedBlocks = 0;
   let resolvedBlocks = 0;
   let leftOnly = 0;
   let rightOnly = 0;
   let totalLines = 0;
+  let commonLines = 0;
 
   blocks.forEach((block, index) => {
     totalLines += Math.max(block.left.length, block.right.length);
-    if (block.type === "same") return;
-    changedBlocks += 1;
+    if (block.type === "same") {
+      commonLines += block.left.length;
+      return;
+    }
+    diffBlocks += 1;
     if (block.left.length && !block.right.length) leftOnly += block.left.length;
     if (block.right.length && !block.left.length) rightOnly += block.right.length;
     const choice = choices[index] || block.choice;
@@ -223,7 +248,7 @@ export function summarizeMergeBlocks(blocks, choices = {}) {
     else unresolvedBlocks += 1;
   });
 
-  return { totalLines, changedBlocks, unresolvedBlocks, resolvedBlocks, leftOnly, rightOnly };
+  return { totalLines, commonLines, diffBlocks, changedBlocks: diffBlocks, unresolvedBlocks, resolvedBlocks, leftOnly, rightOnly };
 }
 
 function summarizeChangedKeywords(blocks) {
@@ -250,8 +275,13 @@ function summarizeChangedKeywords(blocks) {
 export function mergeTextDiff(leftInput, rightInput, choices = {}) {
   const blocks = createMergeBlocks(leftInput, rightInput);
   const summary = summarizeMergeBlocks(blocks, choices);
+  const leftLines = normalizeLines(leftInput).length;
+  const rightLines = normalizeLines(rightInput).length;
   const changeSummary = summarizeChangedKeywords(blocks);
   const merged = buildMergedResult(blocks, choices);
+  const warning = leftLines + rightLines > 5000
+    ? "\n[WARNING]\nLarge input detected. Diff is line-based and may be slower for very large text.\n"
+    : "";
   const blockText = blocks.map((block, index) => {
     if (block.type === "same") return `[BLOCK ${index}] SAME\n${block.left.join("\n")}`;
     return [
@@ -266,20 +296,28 @@ export function mergeTextDiff(leftInput, rightInput, choices = {}) {
 
   return [
     "[SUMMARY]",
-    `Total lines: ${summary.totalLines}`,
-    `Changed blocks: ${summary.changedBlocks}`,
+    `Total left lines / 左行数: ${leftLines}`,
+    `Total right lines / 右行数: ${rightLines}`,
+    `Common lines / 共通行: ${summary.commonLines}`,
+    `Diff blocks / 差分ブロック: ${summary.diffBlocks}`,
+    `Unresolved / 未解決: ${summary.unresolvedBlocks}`,
+    `Resolved / 解決済み: ${summary.resolvedBlocks}`,
+    `Changed blocks: ${summary.diffBlocks}`,
     `Unresolved blocks: ${summary.unresolvedBlocks}`,
-    `Resolved blocks: ${summary.resolvedBlocks}`,
     `Left only: ${summary.leftOnly}`,
     `Right only: ${summary.rightOnly}`,
     `Change summary: ${changeSummary}`,
-    "",
+    warning,
     "[DIFF BLOCKS]",
     blockText,
     "",
     "[MERGED RESULT]",
     merged,
   ].join("\n");
+}
+
+export function getMergedText(leftInput, rightInput, choices = {}) {
+  return buildMergedResult(createMergeBlocks(leftInput, rightInput), choices);
 }
 
 function parseHunkHeader(line) {
