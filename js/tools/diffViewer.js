@@ -296,12 +296,12 @@ export function mergeTextDiff(leftInput, rightInput, choices = {}) {
 
   return [
     "[SUMMARY]",
-    `Total left lines / 左行数: ${leftLines}`,
-    `Total right lines / 右行数: ${rightLines}`,
-    `Common lines / 共通行: ${summary.commonLines}`,
-    `Diff blocks / 差分ブロック: ${summary.diffBlocks}`,
-    `Unresolved / 未解決: ${summary.unresolvedBlocks}`,
-    `Resolved / 解決済み: ${summary.resolvedBlocks}`,
+    `Total left lines / \u5de6\u884c\u6570: ${leftLines}`,
+    `Total right lines / \u53f3\u884c\u6570: ${rightLines}`,
+    `Common lines / \u5171\u901a\u884c: ${summary.commonLines}`,
+    `Diff blocks / \u5dee\u5206\u30d6\u30ed\u30c3\u30af: ${summary.diffBlocks}`,
+    `Unresolved / \u672a\u89e3\u6c7a: ${summary.unresolvedBlocks}`,
+    `Resolved / \u89e3\u6c7a\u6e08\u307f: ${summary.resolvedBlocks}`,
     `Changed blocks: ${summary.diffBlocks}`,
     `Unresolved blocks: ${summary.unresolvedBlocks}`,
     `Left only: ${summary.leftOnly}`,
