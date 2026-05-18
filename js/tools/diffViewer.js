@@ -226,9 +226,31 @@ export function summarizeMergeBlocks(blocks, choices = {}) {
   return { totalLines, changedBlocks, unresolvedBlocks, resolvedBlocks, leftOnly, rightOnly };
 }
 
+function summarizeChangedKeywords(blocks) {
+  const stopWords = new Set(["const", "let", "var", "return", "function", "true", "false", "null", "undefined"]);
+  const counts = new Map();
+
+  blocks.forEach((block) => {
+    if (block.type === "same") return;
+    [...block.left, ...block.right].join(" ").replace(/[A-Za-z_$][\w$-]*/g, (word) => {
+      if (stopWords.has(word) || word.length < 3) return word;
+      counts.set(word, (counts.get(word) || 0) + 1);
+      return word;
+    });
+  });
+
+  const keywords = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 6)
+    .map(([word]) => word);
+
+  return keywords.length ? `Changed keywords: ${keywords.join(", ")}` : "Changed keywords: none";
+}
+
 export function mergeTextDiff(leftInput, rightInput, choices = {}) {
   const blocks = createMergeBlocks(leftInput, rightInput);
   const summary = summarizeMergeBlocks(blocks, choices);
+  const changeSummary = summarizeChangedKeywords(blocks);
   const merged = buildMergedResult(blocks, choices);
   const blockText = blocks.map((block, index) => {
     if (block.type === "same") return `[BLOCK ${index}] SAME\n${block.left.join("\n")}`;
@@ -250,6 +272,7 @@ export function mergeTextDiff(leftInput, rightInput, choices = {}) {
     `Resolved blocks: ${summary.resolvedBlocks}`,
     `Left only: ${summary.leftOnly}`,
     `Right only: ${summary.rightOnly}`,
+    `Change summary: ${changeSummary}`,
     "",
     "[DIFF BLOCKS]",
     blockText,

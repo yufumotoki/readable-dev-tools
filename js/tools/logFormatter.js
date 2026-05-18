@@ -132,6 +132,43 @@ function highlightLine(line, keyword, caseSensitive) {
   return output + line.slice(cursor);
 }
 
+function summarizeErrorKeywords(entries) {
+  const stopWords = new Set([
+    "error",
+    "warn",
+    "info",
+    "debug",
+    "trace",
+    "request",
+    "request_id",
+    "req",
+    "id",
+    "the",
+    "and",
+    "for",
+    "with",
+    "from",
+    "code",
+    "path",
+  ]);
+  const counts = new Map();
+
+  entries.forEach((entry) => {
+    const text = stripAnsi(entry.lines.join(" ")).toLowerCase();
+    if (detectLevel(text) !== "ERROR") return;
+    (text.match(/[a-z][a-z0-9_-]{2,}/g) || []).forEach((word) => {
+      if (stopWords.has(word) || /^\d+$/.test(word)) return;
+      counts.set(word, (counts.get(word) || 0) + 1);
+    });
+  });
+
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 5)
+    .map(([word, count]) => `${word}(${count})`)
+    .join(", ");
+}
+
 function formatEntry(entry, options) {
   return entry.lines.map((line, index) => {
     const trimmed = stripAnsi(line).trim();
@@ -184,6 +221,7 @@ export function analyzeLog(input, options = {}) {
   const selected = entries.filter((entry, index) => included.has(index));
   const formatted = selected.map((entry) => formatEntry(entry, options)).join("\n");
   const requestIds = extractRequestIds(selected.flatMap((entry) => entry.lines).join("\n"));
+  const errorKeywords = summarizeErrorKeywords(selected);
   const summary = [
     "[SUMMARY]",
     `Total lines: ${lineCount}`,
@@ -197,6 +235,7 @@ export function analyzeLog(input, options = {}) {
     `Debug count: ${counts.DEBUG}`,
     `Trace count: ${counts.TRACE}`,
     `Request IDs: ${requestIds.length ? requestIds.join(", ") : "none"}`,
+    `Likely error keywords: ${errorKeywords || "none"}`,
   ].join("\n");
 
   return {

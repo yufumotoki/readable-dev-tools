@@ -17,6 +17,8 @@ const copyButton = document.getElementById("copyButton");
 const copyStatus = document.getElementById("copyStatus");
 const jsonOptionsPanel = document.getElementById("jsonOptionsPanel");
 const jsonPathInput = document.getElementById("jsonPathInput");
+const jsonKeySearchInput = document.getElementById("jsonKeySearchInput");
+const jsonValueSearchInput = document.getElementById("jsonValueSearchInput");
 const logFilterPanel = document.getElementById("logFilterPanel");
 const logLevelFilter = document.getElementById("logLevelFilter");
 const logKeywordFilter = document.getElementById("logKeywordFilter");
@@ -43,6 +45,7 @@ const diffComparePanel = document.getElementById("diffComparePanel");
 const diffBeforeLabel = document.getElementById("diffBeforeLabel");
 const diffAfterLabel = document.getElementById("diffAfterLabel");
 const diffBeforeArea = document.getElementById("diffBeforeArea");
+const diffMergedArea = document.getElementById("diffMergedArea");
 const diffAfterArea = document.getElementById("diffAfterArea");
 const previewSection = document.getElementById("previewSection");
 const previewOutput = document.getElementById("previewOutput");
@@ -52,6 +55,7 @@ const advancedContent = document.getElementById("advancedContent");
 
 let copyStatusTimer;
 let mergeChoices = {};
+let activeOutputElement = null;
 
 const samples = {
   json: '{"user":{"id":42,"name":"Ada","roles":["admin","reviewer"],"profile":{"active":true,"team":"platform"}},"meta":{"requestId":"req-2026-001","latencyMs":38},"items":[{"id":"a1","ok":true},{"id":"b2","ok":false,"error":null}]}',
@@ -271,6 +275,8 @@ function getOptions() {
   return {
     json: {
       path: jsonPathInput ? jsonPathInput.value.trim() : "",
+      keySearch: jsonKeySearchInput ? jsonKeySearchInput.value.trim() : "",
+      valueSearch: jsonValueSearchInput ? jsonValueSearchInput.value.trim() : "",
     },
     log: {
       level: logLevelFilter ? logLevelFilter.value : "all",
@@ -316,12 +322,21 @@ export function processInput() {
   if (isDiffCompareMode && diffBeforeArea && diffAfterArea) {
     outputArea.readOnly = false;
     outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value, mergeChoices);
+    if (diffMergedArea) {
+      diffMergedArea.value = getSection(outputArea.value, "MERGED RESULT");
+      activeOutputElement = diffMergedArea;
+    }
   } else if (isDiffApplyMode && diffBeforeArea && diffAfterArea) {
     outputArea.readOnly = true;
     outputArea.value = applyUnifiedDiff(diffBeforeArea.value, diffAfterArea.value);
+    if (diffMergedArea) {
+      diffMergedArea.value = getSection(outputArea.value, "APPLIED RESULT") || outputArea.value;
+      activeOutputElement = diffMergedArea;
+    }
   } else {
     outputArea.readOnly = true;
     outputArea.value = runTool(type, input, getOptions());
+    activeOutputElement = outputArea;
   }
 
   togglePanels(type, isManualDiff, usesTwoPanelDiff);
@@ -340,6 +355,7 @@ function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
   if (diffModePanel) diffModePanel.hidden = !isManualDiff;
   if (diffComparePanel) diffComparePanel.hidden = !usesTwoPanelDiff;
   if (inputPanel) inputPanel.hidden = usesTwoPanelDiff;
+  if (editorGrid) editorGrid.hidden = usesTwoPanelDiff;
   if (editorGrid) editorGrid.classList.toggle("output-only", usesTwoPanelDiff);
 }
 
@@ -379,6 +395,10 @@ function updateDiffMergeOutput() {
     "[MERGED RESULT]",
     buildMergedResult(blocks, mergeChoices),
   ].join("\n");
+  if (diffMergedArea) {
+    diffMergedArea.value = getSection(outputArea.value, "MERGED RESULT");
+    activeOutputElement = diffMergedArea;
+  }
   updateAdvancedView(outputArea.value, true);
 }
 
@@ -401,10 +421,10 @@ function renderMergeControls() {
     const actions = document.createElement("div");
     actions.className = "block-actions";
     actions.append(
-      createMergeButton("Use Left", () => { mergeChoices[index] = "left"; updateDiffMergeOutput(); }),
-      createMergeButton("Use Right", () => { mergeChoices[index] = "right"; updateDiffMergeOutput(); }),
-      createMergeButton("Use Both", () => { mergeChoices[index] = "both"; updateDiffMergeOutput(); }),
-      createMergeButton("Reset Block", () => { delete mergeChoices[index]; updateDiffMergeOutput(); })
+      createMergeButton("Use Left / \u5de6\u3092\u63a1\u7528", () => { mergeChoices[index] = "left"; updateDiffMergeOutput(); }),
+      createMergeButton("Use Right / \u53f3\u3092\u63a1\u7528", () => { mergeChoices[index] = "right"; updateDiffMergeOutput(); }),
+      createMergeButton("Use Both / \u4e21\u65b9\u63a1\u7528", () => { mergeChoices[index] = "both"; updateDiffMergeOutput(); }),
+      createMergeButton("Reset / \u623b\u3059", () => { delete mergeChoices[index]; updateDiffMergeOutput(); })
     );
     blockEl.append(text, actions);
     advancedContent.appendChild(blockEl);
@@ -457,8 +477,8 @@ function updateDiffLabels(isApplyMode) {
     diffBeforeArea.placeholder = t("diffOriginalPlaceholder");
     diffAfterArea.placeholder = t("diffPatchPlaceholder");
   } else {
-    diffBeforeLabel.textContent = t("beforeLabel");
-    diffAfterLabel.textContent = t("afterLabel");
+    diffBeforeLabel.textContent = "Your Version / \u81ea\u5206\u306e\u7248";
+    diffAfterLabel.textContent = "Other Version / \u76f8\u624b\u306e\u7248";
     diffBeforeArea.placeholder = t("diffBeforePlaceholder");
     diffAfterArea.placeholder = t("diffAfterPlaceholder");
   }
@@ -535,7 +555,8 @@ function resetCopyStatus(message = "") {
 }
 
 async function copyOutput() {
-  const text = outputArea.value;
+  const target = activeOutputElement || outputArea;
+  const text = target.value;
 
   if (!text) {
     resetCopyStatus("");
@@ -546,10 +567,10 @@ async function copyOutput() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(text);
     } else {
-      outputArea.focus();
-      outputArea.select();
+      target.focus();
+      target.select();
       document.execCommand("copy");
-      outputArea.setSelectionRange(0, 0);
+      target.setSelectionRange(0, 0);
     }
 
     resetCopyStatus(t("copied"));
@@ -562,13 +583,14 @@ function clearAll() {
   inputArea.value = "";
   outputArea.value = "";
   if (diffBeforeArea) diffBeforeArea.value = "";
+  if (diffMergedArea) diffMergedArea.value = "";
   if (diffAfterArea) diffAfterArea.value = "";
   if (diffModeSelect) diffModeSelect.value = "compare";
   mergeChoices = {};
   if (logLevelFilter) logLevelFilter.value = "all";
   if (logKeywordFilter) logKeywordFilter.value = "";
   if (logCaseSensitive) logCaseSensitive.checked = false;
-  [jsonPathInput, logTimeFrom, logTimeTo, logContextLines].forEach((field) => {
+  [jsonPathInput, jsonKeySearchInput, jsonValueSearchInput, logTimeFrom, logTimeTo, logContextLines].forEach((field) => {
     if (field) field.value = "";
   });
   detectedType.textContent = formatTypeLabel("empty");
@@ -597,6 +619,8 @@ if (languageSelect) languageSelect.addEventListener("change", applyLanguage);
 
 [
   jsonPathInput,
+  jsonKeySearchInput,
+  jsonValueSearchInput,
   logLevelFilter,
   logKeywordFilter,
   logCaseSensitive,

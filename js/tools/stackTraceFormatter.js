@@ -13,7 +13,7 @@ function parseError(lines) {
 
 function classifyFrame(filePath) {
   if (!filePath) return "unknown";
-  if (/node_modules|\/vendor\/|\\vendor\\|webpack\/bootstrap|internal\/modules/.test(filePath)) return "dependency";
+  if (/node_modules|(^|[\\/])vendor[\\/]|webpack\/bootstrap|internal\/modules/.test(filePath)) return "dependency";
   if (/(^|[\\/])(src|app|pages|components|lib)[\\/]/.test(filePath) || /\.(tsx?|jsx?)$/.test(filePath)) return "app";
   return "unknown";
 }
@@ -69,6 +69,7 @@ export function analyzeStackTrace(input, options = {}) {
   const appFrames = frames.filter((frame) => frame.classification === "app");
   const dependencyFrames = frames.filter((frame) => frame.classification === "dependency");
   const selected = filterFrames(frames, options.filter || (options.hideVendor === false ? "all" : "all"));
+  const mostRelevant = appFrames[0] || frames[0] || null;
   const summary = [
     "[SUMMARY]",
     `Error name: ${error.name}`,
@@ -78,6 +79,7 @@ export function analyzeStackTrace(input, options = {}) {
     `Dependency frames: ${dependencyFrames.length}`,
     `Unknown frames: ${frames.length - appFrames.length - dependencyFrames.length}`,
     `Minified frames: ${frames.filter((frame) => frame.minified).length}`,
+    `Most relevant frame: ${mostRelevant ? `${mostRelevant.functionName} ${mostRelevant.filePath}:${mostRelevant.lineNumber}:${mostRelevant.columnNumber}` : "none"}`,
   ].join("\n");
   const frameList = selected.map((frame) => [
     `[FRAME ${frame.index}] ${frame.classification}${frame.minified ? " minified" : ""}`,

@@ -13,6 +13,7 @@ function runCase(testCase) {
     code: { mode: "readability" },
     text: { dedupe: true, sort: false },
   };
+  Object.assign(options, testCase.options || {});
 
   if (testCase.tool === "diff") {
     output = mergeTextDiff(testCase.input, testCase.afterInput || "");

@@ -30,8 +30,9 @@
       <header class="site-header">
         <div>
           <p class="eyebrow">Readable Dev Tools</p>
-          <h1 data-i18n="heroTitle">Paste it. Make it readable.</h1>
-          <p class="lead" data-i18n="heroLead">No data leaves your browser. Everything is processed locally.</p>
+          <h1>Readable Dev Tools</h1>
+          <p class="lead">&#36028;&#12427;&#12384;&#12369;&#12391;&#12289;&#35501;&#12417;&#12427;&#12290;&#12487;&#12540;&#12479;&#12399;&#22806;&#12395;&#20986;&#12414;&#12379;&#12435;&#12290;</p>
+          <p class="lead compact-lead">Secure browser-only developer tools. No data leaves your browser.</p>
         </div>
         <label class="language-picker" for="languageSelect">
           <span data-i18n="languageLabel">Language</span>
@@ -43,74 +44,51 @@
       </header>
 
       <main>
-        <nav class="site-nav" aria-label="Primary">
-          <a href="/" data-i18n="homeLink">Home</a>
-          <a href="/json-formatter.html" data-i18n="toolJson">JSON Formatter</a>
-          <a href="/log-formatter.html" data-i18n="toolLog">Log Formatter</a>
-          <a href="/stack-trace-formatter.html" data-i18n="toolStack">Stack Trace Formatter</a>
-          <a href="/diff-viewer.html" data-i18n="toolDiff">Diff Viewer</a>
-          <a href="/minify-beautifier.html" data-i18n="toolMinify">Minify Beautifier</a>
-          <a href="/code-refactor.html" data-i18n="toolCode">Code Refactor</a>
-          <a href="/privacy.html" data-i18n="privacyLink">Privacy</a>
-          <a href="/about.html" data-i18n="aboutLink">About</a>
-        </nav>
-
-        <section class="security-panel" aria-labelledby="security-title">
+        <section class="security-panel trust-bar" aria-labelledby="security-title">
           <div class="security-heading">
             <h2 id="security-title" data-i18n="securityTitle">No data leaves your browser.</h2>
             <p data-i18n="securityText">Your input is never sent to a server and is processed only in browser memory.</p>
           </div>
           <div class="badge-grid" aria-label="Security properties">
-            <span class="security-badge">100% Local Processing</span>
-            <span class="security-badge">No API Calls</span>
-            <span class="security-badge">No Data Transfer</span>
-            <span class="security-badge">No Storage</span>
-            <span class="security-badge">Works Offline</span>
-          </div>
-        </section>
-
-        <section class="seo-copy" aria-labelledby="secure-tools-title">
-          <h2 id="secure-tools-title" data-i18n="seoHomeTitle">Secure browser-only developer tools</h2>
-          <p data-i18n="seoHomeCopy">Readable Dev Tools is a secure local developer toolkit for engineers who need to format sensitive logs, JSON, stack traces, diffs, and source code without uploading data to external servers.</p>
-          <p data-i18n="seoSecurityLine">No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.</p>
-          <div class="link-list" aria-label="Readable Dev Tools pages">
-            <a href="/json-formatter.html" data-i18n="toolJson">JSON Formatter</a>
-            <a href="/log-formatter.html" data-i18n="toolLog">Log Formatter</a>
-            <a href="/stack-trace-formatter.html" data-i18n="toolStack">Stack Trace Formatter</a>
-            <a href="/diff-viewer.html" data-i18n="toolDiff">Diff Viewer</a>
-            <a href="/minify-beautifier.html" data-i18n="toolMinify">Minify Beautifier</a>
-            <a href="/code-refactor.html" data-i18n="toolCode">Code Refactor</a>
-            <a href="/privacy.html" data-i18n="privacyLink">Privacy</a>
-            <a href="/about.html" data-i18n="aboutLink">About</a>
+            <span class="security-badge">100% Local Processing<br>&#23436;&#20840;&#12525;&#12540;&#12459;&#12523;&#20966;&#29702;</span>
+            <span class="security-badge">No API Calls<br>API&#36890;&#20449;&#12394;&#12375;</span>
+            <span class="security-badge">No Data Transfer<br>&#12487;&#12540;&#12479;&#36865;&#20449;&#12394;&#12375;</span>
+            <span class="security-badge">No Storage<br>&#20445;&#23384;&#12394;&#12375;</span>
           </div>
         </section>
 
         <section class="workspace" aria-label="Formatter workspace">
+          <div class="workflow-strip" aria-label="Workflow">
+            <span>1. Input / &#20837;&#21147;</span>
+            <span>2. Detect / Analyze / &#35299;&#26512;</span>
+            <span>3. Operate / &#25805;&#20316;</span>
+            <span>4. Copy / &#12467;&#12500;&#12540;</span>
+          </div>
           <div class="toolbar">
             <div class="detected">
-              <span data-i18n="detectedLabel">Detected:</span>
+              <span>Detected Type / &#26908;&#20986;&#12479;&#12452;&#12503;</span>
               <strong id="detectedType">Empty</strong>
               <small id="detectConfidence">Confidence: High</small>
             </div>
             <label class="tool-picker" for="toolSelect">
-              <span data-i18n="toolLabel">Tool</span>
+              <span>Tool / &#12484;&#12540;&#12523;</span>
               <select id="toolSelect">
-                <option value="auto" data-i18n-option="toolAuto">Auto</option>
-                <option value="json" data-i18n-option="toolJson">JSON Formatter</option>
-                <option value="log" data-i18n-option="toolLog">Log Formatter</option>
-                <option value="code" data-i18n-option="toolCode">Code Refactor</option>
-                <option value="stack" data-i18n-option="toolStack">Stack Trace Formatter</option>
-                <option value="minify" data-i18n-option="toolMinify">Minify Beautifier</option>
-                <option value="diff" data-i18n-option="toolDiff">Diff Viewer</option>
-                <option value="text" data-i18n-option="toolText">Text Formatter</option>
+                <option value="auto">Auto Detect / &#33258;&#21205;&#21028;&#23450;</option>
+                <option value="json">JSON Formatter / JSON&#25972;&#24418;</option>
+                <option value="log">Log Formatter / &#12525;&#12464;&#35299;&#26512;</option>
+                <option value="stack">Stack Trace Formatter / &#12473;&#12479;&#12483;&#12463;&#12488;&#12524;&#12540;&#12473;&#35299;&#26512;</option>
+                <option value="diff">Diff Viewer / &#24046;&#20998;&#27604;&#36611;</option>
+                <option value="minify">Minify Beautifier / &#22311;&#32302;&#12467;&#12540;&#12489;&#25972;&#24418;</option>
+                <option value="code">Code Refactor / &#12467;&#12540;&#12489;&#12522;&#12501;&#12449;&#12463;&#12479;</option>
+                <option value="text">Text Formatter / &#12486;&#12461;&#12473;&#12488;&#25972;&#24418;</option>
               </select>
             </label>
             <div class="actions" aria-label="Actions">
-              <button id="sampleButton" type="button" class="secondary" data-i18n="sampleButton">Sample</button>
-              <button id="formatButton" type="button" data-i18n="formatButton">Format / Refactor</button>
-              <button id="clearButton" type="button" class="secondary" data-i18n="clearButton">Clear</button>
-              <button id="resetButton" type="button" class="secondary">Reset</button>
-              <button id="copyButton" type="button" class="secondary" data-i18n="copyButton">Copy Output</button>
+              <button id="sampleButton" type="button" class="secondary">Load Sample / &#12469;&#12531;&#12503;&#12523;</button>
+              <button id="formatButton" type="button">Analyze / &#23455;&#34892;</button>
+              <button id="clearButton" type="button" class="secondary">Clear / &#12463;&#12522;&#12450;</button>
+              <button id="resetButton" type="button" class="secondary">Reset / &#12522;&#12475;&#12483;&#12488;</button>
+              <button id="copyButton" type="button" class="secondary">Copy Output / &#20986;&#21147;&#12434;&#12467;&#12500;&#12540;</button>
               <span id="copyStatus" class="copy-status" aria-live="polite"></span>
             </div>
           </div>
@@ -119,19 +97,27 @@
 
           <div id="jsonOptionsPanel" class="filter-panel" hidden>
             <label for="jsonPathInput">
-              <span data-i18n="jsonPathLabel">JSON Path</span>
+              <span>Selected path / &#36984;&#25246;&#20013;&#12398;&#12497;&#12473;</span>
               <input id="jsonPathInput" type="text" autocomplete="off" placeholder="$.user.name or $.items[0]">
+            </label>
+            <label for="jsonKeySearchInput">
+              <span>Key search / &#12461;&#12540;&#26908;&#32034;</span>
+              <input id="jsonKeySearchInput" type="text" autocomplete="off" placeholder="profile, user, requestId">
+            </label>
+            <label for="jsonValueSearchInput">
+              <span>Value search / &#20516;&#26908;&#32034;</span>
+              <input id="jsonValueSearchInput" type="text" autocomplete="off" placeholder="Ada, true, 500">
             </label>
           </div>
 
           <div id="logFilterPanel" class="filter-panel" hidden>
             <label for="logLevelFilter">
-              <span data-i18n="levelLabel">Level</span>
+              <span>Level filter / &#12524;&#12505;&#12523;&#12501;&#12451;&#12523;&#12479;</span>
               <select id="logLevelFilter">
-                <option value="all" data-i18n-option="allLevels">All levels</option>
-                <option value="WARN+">WARN and ERROR</option>
-                <option value="DEBUG+">DEBUG / TRACE included</option>
-                <option value="ERROR">ERROR</option>
+                <option value="all">All / &#12377;&#12409;&#12390;</option>
+                <option value="ERROR">ERROR only / ERROR&#12398;&#12415;</option>
+                <option value="WARN+">WARN and ERROR / WARN&#20197;&#19978;</option>
+                <option value="DEBUG+">DEBUG / TRACE included / &#12377;&#12409;&#12390;&#34920;&#31034;</option>
                 <option value="WARN">WARN</option>
                 <option value="INFO">INFO</option>
                 <option value="DEBUG">DEBUG</option>
@@ -139,7 +125,7 @@
               </select>
             </label>
             <label for="logKeywordFilter">
-              <span data-i18n="keywordLabel">Keyword</span>
+              <span>Search logs / &#12525;&#12464;&#26908;&#32034;</span>
               <input id="logKeywordFilter" type="text" autocomplete="off" data-i18n-placeholder="keywordPlaceholder" placeholder="request id, user id, error text">
             </label>
             <label class="checkbox-control" for="logCaseSensitive">
@@ -162,11 +148,11 @@
 
           <div id="stackOptionsPanel" class="filter-panel" hidden>
             <label for="stackFrameFilter">
-              <span>Frame filter</span>
+              <span>Frame filter / &#12501;&#12524;&#12540;&#12512;&#34920;&#31034;</span>
               <select id="stackFrameFilter">
-                <option value="all">All frames</option>
-                <option value="app">App only</option>
-                <option value="dependency">Dependencies only</option>
+                <option value="all">All frames / &#12377;&#12409;&#12390;&#34920;&#31034;</option>
+                <option value="app">App only / &#12450;&#12503;&#12522;&#20596;&#12398;&#12415;</option>
+                <option value="dependency">Dependencies only / &#20381;&#23384;&#12521;&#12452;&#12502;&#12521;&#12522;&#12398;&#12415;</option>
               </select>
             </label>
             <label class="checkbox-control" for="stackHideVendor">
@@ -203,11 +189,11 @@
 
           <div id="codeOptionsPanel" class="filter-panel" hidden>
             <label for="codeModeSelect">
-              <span>Refactor Mode</span>
+              <span>Refactor Mode / &#26041;&#37341;</span>
               <select id="codeModeSelect">
-                <option value="readability">Readability Mode</option>
-                <option value="performance">Performance Mode</option>
-                <option value="safe">Safe Mode</option>
+                <option value="readability">Readability / &#21487;&#35501;&#24615;&#37325;&#35222;</option>
+                <option value="performance">Performance / &#36895;&#24230;&#37325;&#35222;</option>
+                <option value="safe">Safe / &#23433;&#20840;&#37325;&#35222;</option>
               </select>
             </label>
           </div>
@@ -223,35 +209,48 @@
             </label>
           </div>
 
-          <div id="diffComparePanel" class="compare-panel" hidden>
+          <div id="diffComparePanel" class="compare-panel diff-three-pane" hidden>
             <label class="editor-panel" for="diffBeforeArea">
-              <span id="diffBeforeLabel" class="panel-title">Before</span>
+              <span id="diffBeforeLabel" class="panel-title">Your Version / &#33258;&#20998;&#12398;&#29256;</span>
               <textarea id="diffBeforeArea" spellcheck="false" data-i18n-placeholder="diffBeforePlaceholder" placeholder="Paste the original text"></textarea>
             </label>
+            <label class="editor-panel" for="diffMergedArea">
+              <span class="panel-title">Merged Result / &#32113;&#21512;&#32080;&#26524;</span>
+              <textarea id="diffMergedArea" spellcheck="false" placeholder="Merged result appears here"></textarea>
+            </label>
             <label class="editor-panel" for="diffAfterArea">
-              <span id="diffAfterLabel" class="panel-title">After</span>
+              <span id="diffAfterLabel" class="panel-title">Other Version / &#30456;&#25163;&#12398;&#29256;</span>
               <textarea id="diffAfterArea" spellcheck="false" data-i18n-placeholder="diffAfterPlaceholder" placeholder="Paste the changed text"></textarea>
             </label>
           </div>
 
           <div id="editorGrid" class="editor-grid">
             <label id="inputPanel" class="editor-panel" for="inputArea">
-              <span class="panel-title" data-i18n="inputLabel">Input</span>
+              <span class="panel-title">Input / &#20837;&#21147;</span>
               <textarea id="inputArea" spellcheck="false" data-i18n-placeholder="inputPlaceholder" placeholder="Paste logs, JSON, code, stack traces, diffs, or text here"></textarea>
             </label>
 
             <label class="editor-panel" for="outputArea">
-              <span class="panel-title" data-i18n="outputLabel">Output</span>
+              <span class="panel-title">Output / &#20986;&#21147;</span>
               <textarea id="outputArea" spellcheck="false" readonly></textarea>
             </label>
           </div>
 
-          <section id="advancedView" class="advanced-view" aria-labelledby="advanced-title">
-            <h2 id="advanced-title">Advanced View</h2>
-            <div id="processingSummary" class="summary-grid"></div>
-            <div id="warningBox" class="warning-box" hidden></div>
-            <div id="advancedContent" class="advanced-content"></div>
+          <section class="result-meta" aria-label="Processing result">
+            <div>
+              <h2>Processing Summary / &#20966;&#29702;&#12469;&#12510;&#12522;&#12540;</h2>
+              <div id="processingSummary" class="summary-grid"></div>
+            </div>
+            <div>
+              <h2>Warning / &#27880;&#24847;</h2>
+              <div id="warningBox" class="warning-box" hidden></div>
+            </div>
           </section>
+
+          <details id="advancedView" class="advanced-view" aria-labelledby="advanced-title" open>
+            <summary id="advanced-title">Advanced View / &#35443;&#32048;&#34920;&#31034;</summary>
+            <div id="advancedContent" class="advanced-content"></div>
+          </details>
         </section>
 
         <section id="previewSection" class="refactor-rules" aria-labelledby="preview-title" hidden>
@@ -301,6 +300,23 @@
               <p data-i18n="textCard">Normalizes spacing, keeps Markdown readable, removes duplicates, and sorts lines.</p>
             </article>
           </div>
+        </section>
+
+        <section class="seo-copy help-examples" aria-labelledby="secure-tools-title">
+          <h2 id="secure-tools-title" data-i18n="seoHomeTitle">Help / Examples</h2>
+          <p data-i18n="seoHomeCopy">Readable Dev Tools is a secure local developer toolkit for engineers who need to format sensitive logs, JSON, stack traces, diffs, and source code without uploading data to external servers.</p>
+          <p data-i18n="seoSecurityLine">No data leaves your browser. 100% Local Processing. No API Calls. No Storage. Browser-only developer tools.</p>
+          <nav class="site-nav compact-links" aria-label="Readable Dev Tools pages">
+            <a href="/" data-i18n="homeLink">Home</a>
+            <a href="/json-formatter.html" data-i18n="toolJson">JSON Formatter</a>
+            <a href="/log-formatter.html" data-i18n="toolLog">Log Formatter</a>
+            <a href="/stack-trace-formatter.html" data-i18n="toolStack">Stack Trace Formatter</a>
+            <a href="/diff-viewer.html" data-i18n="toolDiff">Diff Viewer</a>
+            <a href="/minify-beautifier.html" data-i18n="toolMinify">Minify Beautifier</a>
+            <a href="/code-refactor.html" data-i18n="toolCode">Code Refactor</a>
+            <a href="/privacy.html" data-i18n="privacyLink">Privacy</a>
+            <a href="/about.html" data-i18n="aboutLink">About</a>
+          </nav>
         </section>
       </main>
 
