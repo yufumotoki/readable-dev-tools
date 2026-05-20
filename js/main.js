@@ -47,6 +47,8 @@ const diffAfterLabel = document.getElementById("diffAfterLabel");
 const diffBeforeArea = document.getElementById("diffBeforeArea");
 const diffMergedArea = document.getElementById("diffMergedArea");
 const diffAfterArea = document.getElementById("diffAfterArea");
+const diffLeftView = document.getElementById("diffLeftView");
+const diffRightView = document.getElementById("diffRightView");
 const copyMergedButton = document.getElementById("copyMergedButton");
 const copyLeftButton = document.getElementById("copyLeftButton");
 const copyRightButton = document.getElementById("copyRightButton");
@@ -361,6 +363,7 @@ function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
   if (inputPanel) inputPanel.hidden = usesTwoPanelDiff;
   if (editorGrid) editorGrid.hidden = usesTwoPanelDiff;
   if (editorGrid) editorGrid.classList.toggle("output-only", usesTwoPanelDiff);
+  document.body.classList.toggle("diff-dialog-open", usesTwoPanelDiff);
 }
 
 function clearElement(element) {
@@ -424,6 +427,57 @@ function appendChoiceLines(parent, lines, className, startLine) {
   });
 }
 
+function appendSideBlock(parent, block, index, side) {
+  const lines = side === "left" ? block.left : block.right;
+  const startLine = side === "left" ? block.leftStart : block.rightStart;
+  const choice = mergeChoices[index] || "unresolved";
+  const blockEl = document.createElement("section");
+  blockEl.className = `diff-side-block ${side === "left" ? "is-left" : "is-right"} ${choice !== "unresolved" ? "is-muted" : ""}`;
+
+  const heading = document.createElement("div");
+  heading.className = "diff-side-heading";
+  heading.textContent = side === "left"
+    ? `Left change / \u5de6\u5dee\u5206 ${index}`
+    : `Right change / \u53f3\u5dee\u5206 ${index}`;
+
+  const actions = document.createElement("div");
+  actions.className = "diff-inline-actions";
+  if (side === "left") {
+    actions.append(
+      createMergeButton("Use Left \u2192", () => { mergeChoices[index] = "left"; updateDiffOutputFromChoices(); }),
+      createMergeButton("Use Both", () => { mergeChoices[index] = "both"; updateDiffOutputFromChoices(); }),
+      createMergeButton("\u2190 Reset", () => { delete mergeChoices[index]; updateDiffOutputFromChoices(); })
+    );
+  } else {
+    actions.append(
+      createMergeButton("\u2190 Use Right", () => { mergeChoices[index] = "right"; updateDiffOutputFromChoices(); }),
+      createMergeButton("Use Both", () => { mergeChoices[index] = "both"; updateDiffOutputFromChoices(); }),
+      createMergeButton("Reset \u2192", () => { delete mergeChoices[index]; updateDiffOutputFromChoices(); })
+    );
+  }
+  heading.appendChild(actions);
+  blockEl.appendChild(heading);
+  appendChoiceLines(blockEl, lines, side === "left" ? "diff-left-candidate" : "diff-right-candidate", startLine);
+  parent.appendChild(blockEl);
+}
+
+function renderDiffSideViews(blocks) {
+  if (!diffLeftView || !diffRightView) return;
+  clearElement(diffLeftView);
+  clearElement(diffRightView);
+
+  blocks.forEach((block, index) => {
+    if (block.type === "same") {
+      appendDiffLine(diffLeftView, block.left[0] || "", "diff-same", block.leftStart);
+      appendDiffLine(diffRightView, block.right[0] || "", "diff-same", block.rightStart);
+      return;
+    }
+
+    appendSideBlock(diffLeftView, block, index, "left");
+    appendSideBlock(diffRightView, block, index, "right");
+  });
+}
+
 function updateDiffOutputFromChoices() {
   outputArea.value = mergeTextDiff(diffBeforeArea.value, diffAfterArea.value, mergeChoices);
   renderDiffMergedView();
@@ -437,6 +491,7 @@ function renderDiffMergedView() {
   clearElement(diffMergedArea);
   const blocks = createMergeBlocks(diffBeforeArea.value, diffAfterArea.value);
   diffMergedArea.dataset.copyText = buildMergedResult(blocks, mergeChoices);
+  renderDiffSideViews(blocks);
 
   blocks.forEach((block, index) => {
     if (block.type === "same") {
@@ -451,44 +506,17 @@ function renderDiffMergedView() {
     const heading = document.createElement("div");
     heading.className = "diff-block-heading";
     heading.textContent = choice === "unresolved"
-      ? `Different / \u5dee\u5206 ${index} - Unresolved / \u672a\u89e3\u6c7a`
-      : `Different / \u5dee\u5206 ${index} - Resolved / \u89e3\u6c7a\u6e08\u307f: ${choice}`;
+      ? `Conflict / \u30b3\u30f3\u30d5\u30ea\u30af\u30c8 ${index} - waiting for left or right`
+      : `Applied / \u9069\u7528\u6e08\u307f ${index}: ${choice}`;
     blockEl.appendChild(heading);
 
-    if (choice === "left" || choice === "both") appendChoiceLines(blockEl, block.left, "diff-left-candidate diff-resolved-line", block.leftStart);
-    if (choice === "right" || choice === "both") appendChoiceLines(blockEl, block.right, "diff-right-candidate diff-resolved-line", block.rightStart);
+    if (choice === "left") appendChoiceLines(blockEl, block.left, "diff-left-candidate diff-resolved-line", block.leftStart);
+    else if (choice === "right") appendChoiceLines(blockEl, block.right, "diff-right-candidate diff-resolved-line", block.rightStart);
+    else if (choice === "both") {
+      appendChoiceLines(blockEl, block.left, "diff-left-candidate diff-resolved-line", block.leftStart);
+      appendChoiceLines(blockEl, block.right, "diff-right-candidate diff-resolved-line", block.rightStart);
+    } else appendDiffLine(blockEl, "\u2190 choose left or right \u2192", "diff-unresolved-line", block.leftStart || block.rightStart);
 
-    if (choice === "unresolved") {
-      const candidates = document.createElement("div");
-      candidates.className = "diff-candidates";
-
-      const leftCandidate = document.createElement("div");
-      leftCandidate.className = "diff-candidate diff-candidate-left";
-      const leftTitle = document.createElement("strong");
-      leftTitle.textContent = "Left candidate / \u5de6\u5019\u88dc";
-      leftCandidate.appendChild(leftTitle);
-      appendChoiceLines(leftCandidate, block.left, "diff-left-candidate", block.leftStart);
-
-      const rightCandidate = document.createElement("div");
-      rightCandidate.className = "diff-candidate diff-candidate-right";
-      const rightTitle = document.createElement("strong");
-      rightTitle.textContent = "Right candidate / \u53f3\u5019\u88dc";
-      rightCandidate.appendChild(rightTitle);
-      appendChoiceLines(rightCandidate, block.right, "diff-right-candidate", block.rightStart);
-
-      candidates.append(leftCandidate, rightCandidate);
-      blockEl.appendChild(candidates);
-    }
-
-    const actions = document.createElement("div");
-    actions.className = "block-actions";
-    actions.append(
-      createMergeButton("\u2190 Use Left / \u5de6\u3092\u63a1\u7528", () => { mergeChoices[index] = "left"; updateDiffOutputFromChoices(); }),
-      createMergeButton("Use Right / \u53f3\u3092\u63a1\u7528 \u2192", () => { mergeChoices[index] = "right"; updateDiffOutputFromChoices(); }),
-      createMergeButton("Use Both / \u4e21\u65b9\u63a1\u7528", () => { mergeChoices[index] = "both"; updateDiffOutputFromChoices(); }),
-      createMergeButton("Reset / \u623b\u3059", () => { delete mergeChoices[index]; updateDiffOutputFromChoices(); })
-    );
-    blockEl.appendChild(actions);
     diffMergedArea.appendChild(blockEl);
   });
 }
@@ -706,6 +734,8 @@ function clearAll() {
     diffMergedArea.dataset.copyText = "";
     clearElement(diffMergedArea);
   }
+  if (diffLeftView) clearElement(diffLeftView);
+  if (diffRightView) clearElement(diffRightView);
   if (diffAfterArea) diffAfterArea.value = "";
   if (diffModeSelect) diffModeSelect.value = "compare";
   mergeChoices = {};
@@ -742,6 +772,8 @@ function clearDiffOnly() {
     diffMergedArea.dataset.copyText = "";
     clearElement(diffMergedArea);
   }
+  if (diffLeftView) clearElement(diffLeftView);
+  if (diffRightView) clearElement(diffRightView);
   mergeChoices = {};
   outputArea.value = "";
   if (processingSummary) clearElement(processingSummary);
@@ -790,7 +822,7 @@ function autoResizeDiffInputs() {
 
 function syncDiffScroll(source) {
   if (diffSyncingScroll) return;
-  const panes = [diffBeforeArea, diffMergedArea, diffAfterArea].filter(Boolean);
+  const panes = [diffBeforeArea, diffLeftView, diffMergedArea, diffRightView, diffAfterArea].filter(Boolean);
   if (!panes.includes(source)) return;
 
   const maxSource = Math.max(source.scrollHeight - source.clientHeight, 1);
@@ -820,7 +852,9 @@ if (copyRightButton) copyRightButton.addEventListener("click", () => copyPlainTe
 if (resetMergedButton) resetMergedButton.addEventListener("click", resetMergedOnly);
 if (clearDiffButton) clearDiffButton.addEventListener("click", clearDiffOnly);
 if (diffBeforeArea) diffBeforeArea.addEventListener("scroll", () => syncDiffScroll(diffBeforeArea));
+if (diffLeftView) diffLeftView.addEventListener("scroll", () => syncDiffScroll(diffLeftView));
 if (diffMergedArea) diffMergedArea.addEventListener("scroll", () => syncDiffScroll(diffMergedArea));
+if (diffRightView) diffRightView.addEventListener("scroll", () => syncDiffScroll(diffRightView));
 if (diffAfterArea) diffAfterArea.addEventListener("scroll", () => syncDiffScroll(diffAfterArea));
 
 [

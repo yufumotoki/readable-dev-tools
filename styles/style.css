@@ -361,6 +361,10 @@ button.secondary:hover {
   display: none;
 }
 
+body.diff-dialog-open {
+  overflow: hidden;
+}
+
 .filter-panel label {
   display: grid;
   gap: 6px;
@@ -418,6 +422,19 @@ button.secondary:hover {
   overflow-wrap: anywhere;
 }
 
+.diff-side-view {
+  flex: 1;
+  min-height: 260px;
+  max-height: 46vh;
+  overflow: auto;
+  color: var(--text);
+  background: #111417;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .diff-plain-result {
   margin: 0;
   white-space: pre-wrap;
@@ -429,6 +446,91 @@ button.secondary:hover {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(29, 35, 42, 0.58);
+}
+
+.diff-three-pane:not([hidden]) {
+  position: fixed;
+  inset: 92px 18px 18px;
+  z-index: 40;
+  grid-template-columns: minmax(260px, 1fr) minmax(280px, 1.08fr) minmax(260px, 1fr);
+  gap: 0;
+  padding: 0;
+  border-color: #3a4652;
+  border-radius: 8px;
+  background: #171b20;
+  box-shadow: 0 30px 120px rgba(0, 0, 0, 0.62);
+}
+
+.diff-three-pane:not([hidden]) .editor-panel {
+  gap: 0;
+  padding: 0;
+  border-right: 1px solid #3a4652;
+  background: #12161a;
+}
+
+.diff-three-pane:not([hidden]) .editor-panel:last-child {
+  border-right: 0;
+}
+
+.diff-three-pane:not([hidden]) .panel-title {
+  min-height: 38px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #303943;
+  color: #cbd5df;
+  background: #20262c;
+}
+
+.diff-three-pane:not([hidden]) textarea {
+  min-height: 130px;
+  max-height: 26vh;
+  border: 0;
+  border-bottom: 1px solid #303943;
+  border-radius: 0;
+  background: #0e1215;
+}
+
+.diff-three-pane:not([hidden]) .diff-merged-view {
+  flex: 1;
+  max-height: none;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+body.diff-dialog-open .diff-actions-panel:not([hidden]) {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 74px;
+  padding: 10px 12px;
+  border: 1px solid #3a4652;
+  border-radius: 8px 8px 0 0;
+  background: #252b31;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34);
+}
+
+body.diff-dialog-open .diff-actions-panel:not([hidden])::before {
+  content: "Conflict Resolver / \5dee\5206\89e3\6c7a";
+  margin-right: auto;
+  color: var(--text);
+  font-size: 0.96rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+body.diff-dialog-open .diff-actions-panel label {
+  min-width: 180px;
+}
+
+body.diff-dialog-open .diff-actions-panel button {
+  min-height: 34px;
+  padding-inline: 10px;
+  white-space: nowrap;
 }
 
 .compare-panel[hidden] {
@@ -791,6 +893,54 @@ textarea[readonly] {
   background: rgba(255, 255, 255, 0.015);
 }
 
+.diff-side-block {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.diff-side-block.is-left {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.diff-side-block.is-right {
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.diff-side-block.is-muted {
+  opacity: 0.72;
+}
+
+.diff-side-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  padding: 5px 8px 5px 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.diff-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.diff-inline-actions button {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 0.72rem;
+}
+
+.diff-unresolved-line {
+  color: #fef3c7;
+  background: rgba(250, 204, 21, 0.08);
+}
+
 .advanced-block pre {
   margin: 0;
   white-space: pre-wrap;
@@ -881,16 +1031,28 @@ textarea[readonly] {
   }
 
   .diff-three-pane {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  body.diff-dialog-open .diff-actions-panel:not([hidden]) {
+    flex-wrap: wrap;
+    align-content: flex-start;
+    max-height: 28vh;
+    overflow: auto;
+  }
+
+  body.diff-dialog-open .diff-three-pane:not([hidden]) {
+    top: calc(28vh + 26px);
   }
 
   .diff-three-pane .editor-panel:nth-child(2) {
-    grid-column: 1 / -1;
-    order: 3;
+    grid-column: auto;
+    order: 2;
   }
 
   .diff-three-pane .editor-panel:nth-child(3) {
-    order: 2;
+    order: 3;
   }
 }
 
@@ -935,6 +1097,24 @@ textarea[readonly] {
   .diff-merged-view,
   textarea {
     min-height: 260px;
+  }
+
+  body.diff-dialog-open .diff-actions-panel:not([hidden]) {
+    min-height: 0;
+    max-height: 34vh;
+  }
+
+  body.diff-dialog-open .diff-actions-panel:not([hidden])::before {
+    flex-basis: 100%;
+  }
+
+  body.diff-dialog-open .diff-actions-panel label,
+  body.diff-dialog-open .diff-actions-panel button {
+    width: 100%;
+  }
+
+  body.diff-dialog-open .diff-three-pane:not([hidden]) {
+    inset: calc(34vh + 26px) 10px 10px;
   }
 
   .diff-candidates {
