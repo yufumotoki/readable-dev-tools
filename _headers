@@ -3,3 +3,9 @@
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()
+
+/sitemap.xml
+  Content-Type: application/xml; charset=UTF-8
+
+/robots.txt
+  Content-Type: text/plain; charset=UTF-8

@@ -2,45 +2,5 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://readable-dev-tools.pages.dev/</loc>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/privacy.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/about.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/json-formatter.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/log-formatter.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/stack-trace-formatter.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/diff-viewer.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/minify-beautifier.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/code-refactor.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/secret-detector.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/jwt-decoder.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/regex-tester.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/env-compare.html</loc>
-  </url>
-  <url>
-    <loc>https://readable-dev-tools.pages.dev/json-schema-generator.html</loc>
   </url>
 </urlset>
