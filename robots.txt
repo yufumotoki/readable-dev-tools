@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://readable-dev-tools.pages.dev/sitemap.xml
+Sitemap: https://readable-dev-tools.pages.dev/sitemap-main.xml
