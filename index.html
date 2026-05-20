@@ -81,6 +81,11 @@
                 <option value="minify">Minify Beautifier / &#22311;&#32302;&#12467;&#12540;&#12489;&#25972;&#24418;</option>
                 <option value="code">Code Refactor / &#12467;&#12540;&#12489;&#12522;&#12501;&#12449;&#12463;&#12479;</option>
                 <option value="text">Text Formatter / &#12486;&#12461;&#12473;&#12488;&#25972;&#24418;</option>
+                <option value="secret">Secret Detector / &#12471;&#12540;&#12463;&#12524;&#12483;&#12488;&#26908;&#20986;</option>
+                <option value="jwt">JWT Decoder / JWT&#35299;&#26512;</option>
+                <option value="regex">Regex Tester / &#27491;&#35215;&#34920;&#29694;&#12486;&#12473;&#12479;&#12540;</option>
+                <option value="env">Env Compare / .env&#27604;&#36611;</option>
+                <option value="schema">JSON Schema Generator / JSON&#12473;&#12461;&#12540;&#12510;&#29983;&#25104;</option>
               </select>
             </label>
             <div class="actions" aria-label="Actions">
@@ -198,6 +203,36 @@
             </label>
           </div>
 
+          <div id="regexOptionsPanel" class="filter-panel" hidden>
+            <label for="regexPatternInput">
+              <span>Regex / &#27491;&#35215;&#34920;&#29694;</span>
+              <input id="regexPatternInput" type="text" autocomplete="off" placeholder="error\\s+(\\d+)">
+            </label>
+            <label for="regexReplaceInput">
+              <span>Replace / &#32622;&#25563;</span>
+              <input id="regexReplaceInput" type="text" autocomplete="off" placeholder="ERROR-$1">
+            </label>
+            <label class="checkbox-control" for="regexFlagG"><input id="regexFlagG" type="checkbox" checked><span>g</span></label>
+            <label class="checkbox-control" for="regexFlagI"><input id="regexFlagI" type="checkbox"><span>i</span></label>
+            <label class="checkbox-control" for="regexFlagM"><input id="regexFlagM" type="checkbox"><span>m</span></label>
+            <label class="checkbox-control" for="regexFlagS"><input id="regexFlagS" type="checkbox"><span>s</span></label>
+          </div>
+
+          <div id="envComparePanel" class="compare-panel env-compare-panel" hidden>
+            <label class="editor-panel" for="envLeftArea">
+              <span class="panel-title">Left env / &#24038;.env</span>
+              <textarea id="envLeftArea" spellcheck="false" placeholder="DATABASE_URL=..."></textarea>
+            </label>
+            <label class="editor-panel" for="envRightArea">
+              <span class="panel-title">Right env / &#21491;.env</span>
+              <textarea id="envRightArea" spellcheck="false" placeholder="DATABASE_URL=..."></textarea>
+            </label>
+            <label class="checkbox-control env-mask-control" for="envRevealValues">
+              <input id="envRevealValues" type="checkbox">
+              <span>Reveal sensitive values / &#27231;&#23494;&#20516;&#12434;&#34920;&#31034;</span>
+            </label>
+          </div>
+
           <div id="diffModePanel" class="filter-panel diff-actions-panel" hidden>
             <label for="diffModeSelect">
               <span data-i18n="diffModeLabel">Diff Mode</span>
@@ -306,6 +341,26 @@
               <h3 data-i18n="toolText">Text Formatter</h3>
               <p data-i18n="textCard">Normalizes spacing, keeps Markdown readable, removes duplicates, and sorts lines.</p>
             </article>
+            <article class="tool-card">
+              <h3>Secret Detector / &#12471;&#12540;&#12463;&#12524;&#12483;&#12488;&#26908;&#20986;</h3>
+              <p>Finds AWS keys, tokens, passwords, private keys, and database URLs locally with masked results.</p>
+            </article>
+            <article class="tool-card">
+              <h3>JWT Decoder / JWT&#35299;&#26512;</h3>
+              <p>Decodes JWT header and payload locally, summarizes claims, and warns that signatures are not verified.</p>
+            </article>
+            <article class="tool-card">
+              <h3>Regex Tester / &#27491;&#35215;&#34920;&#29694;&#12486;&#12473;&#12479;&#12540;</h3>
+              <p>Tests regex patterns against sensitive text in the browser with matches, groups, and replace preview.</p>
+            </article>
+            <article class="tool-card">
+              <h3>Env Compare / .env&#27604;&#36611;</h3>
+              <p>Compares .env files, highlights missing, added, changed, duplicate, empty, and secret-looking keys.</p>
+            </article>
+            <article class="tool-card">
+              <h3>JSON Schema Generator / JSON&#12473;&#12461;&#12540;&#12510;&#29983;&#25104;</h3>
+              <p>Generates JSON Schema and TypeScript types from JSON without uploading the sample data.</p>
+            </article>
           </div>
         </section>
 
@@ -321,6 +376,11 @@
             <a href="/diff-viewer.html" data-i18n="toolDiff">Diff Viewer</a>
             <a href="/minify-beautifier.html" data-i18n="toolMinify">Minify Beautifier</a>
             <a href="/code-refactor.html" data-i18n="toolCode">Code Refactor</a>
+            <a href="/secret-detector.html">Secret Detector</a>
+            <a href="/jwt-decoder.html">JWT Decoder</a>
+            <a href="/regex-tester.html">Regex Tester</a>
+            <a href="/env-compare.html">Env Compare</a>
+            <a href="/json-schema-generator.html">JSON Schema Generator</a>
             <a href="/privacy.html" data-i18n="privacyLink">Privacy</a>
             <a href="/about.html" data-i18n="aboutLink">About</a>
           </nav>
@@ -328,27 +388,9 @@
       </main>
 
       <footer class="site-footer">
-        <p data-i18n="footerSecurity">No data leaves your browser.</p>
-        <p>
-          <a href="/" data-i18n="homeLink">Home</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/privacy.html" data-i18n="privacyLink">Privacy</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/about.html" data-i18n="aboutLink">About</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/json-formatter.html" data-i18n="toolJson">JSON Formatter</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/log-formatter.html" data-i18n="toolLog">Log Formatter</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/stack-trace-formatter.html" data-i18n="toolStack">Stack Trace Formatter</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/diff-viewer.html" data-i18n="toolDiff">Diff Viewer</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/minify-beautifier.html" data-i18n="toolMinify">Minify Beautifier</a>
-          <span aria-hidden="true"> / </span>
-          <a href="/code-refactor.html" data-i18n="toolCode">Code Refactor</a>
-        </p>
-      </footer>
+  <p>No data leaves your browser.</p>
+  <p><a href="/">Home</a> / <a href="/json-formatter.html">JSON Formatter</a> / <a href="/log-formatter.html">Log Formatter</a> / <a href="/stack-trace-formatter.html">Stack Trace Formatter</a> / <a href="/diff-viewer.html">Diff Viewer</a> / <a href="/minify-beautifier.html">Minify Beautifier</a> / <a href="/code-refactor.html">Code Refactor</a> / <a href="/secret-detector.html">Secret Detector</a> / <a href="/jwt-decoder.html">JWT Decoder</a> / <a href="/regex-tester.html">Regex Tester</a> / <a href="/env-compare.html">Env Compare</a> / <a href="/json-schema-generator.html">JSON Schema Generator</a> / <a href="/privacy.html">Privacy</a> / <a href="/about.html">About</a></p>
+</footer>
     </div>
 
     <script type="module" src="js/main.js"></script>

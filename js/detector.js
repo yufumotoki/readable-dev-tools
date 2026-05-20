@@ -23,6 +23,18 @@ export function detectDetails(input) {
     return { type: "json", confidence: "High", reason: "JSON.parse succeeded." };
   }
 
+  if (/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/.test(text)) {
+    return { type: "jwt", confidence: "High", reason: "Found a JWT-like three-part token." };
+  }
+
+  if (/\b(AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9_]{20,}|DATABASE_URL=|JWT_SECRET=|password\s*[:=]|secret\s*[:=]|token\s*[:=]|private_key|PRIVATE KEY)/i.test(text)) {
+    return { type: "secret", confidence: "High", reason: "Found secret-like key, token, password, or private key pattern." };
+  }
+
+  if (/^[A-Za-z_][A-Za-z0-9_.-]*=.*$/m.test(text) && /(SECRET|TOKEN|PASSWORD|DATABASE_URL|API_KEY|NODE_ENV|PORT)/i.test(text)) {
+    return { type: "env", confidence: "Medium", reason: "Found .env-style KEY=value entries." };
+  }
+
   if (isJSONLines(text)) {
     return { type: "json", confidence: "High", reason: "Every non-empty line is valid JSON; treated as JSON Lines." };
   }

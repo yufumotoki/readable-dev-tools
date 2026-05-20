@@ -5,6 +5,11 @@ import { formatStackTrace } from "./tools/stackTraceFormatter.js";
 import { beautifyMinified } from "./tools/minifyBeautifier.js";
 import { formatDiff } from "./tools/diffViewer.js";
 import { formatText } from "./tools/textFormatter.js";
+import { detectSecrets } from "./tools/secretDetector.js";
+import { decodeJWT } from "./tools/jwtDecoder.js";
+import { testRegex } from "./tools/regexTester.js";
+import { compareEnv } from "./tools/envCompare.js";
+import { generateJsonSchema } from "./tools/jsonSchemaGenerator.js";
 
 export function runTool(type, input, options = {}) {
   switch (type) {
@@ -22,6 +27,16 @@ export function runTool(type, input, options = {}) {
       return formatDiff(input);
     case "text":
       return formatText(input, options.text || {});
+    case "secret":
+      return detectSecrets(input, options.secret || {});
+    case "jwt":
+      return decodeJWT(input, options.jwt || {});
+    case "regex":
+      return testRegex(input, options.regex || {});
+    case "env":
+      return compareEnv(input, options.env?.right || "", options.env || {});
+    case "schema":
+      return generateJsonSchema(input, options.schema || {});
     case "empty":
       return "";
     default:

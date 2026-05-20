@@ -34,6 +34,17 @@ const minifyModeSelect = document.getElementById("minifyModeSelect");
 const textOptionsPanel = document.getElementById("textOptionsPanel");
 const codeOptionsPanel = document.getElementById("codeOptionsPanel");
 const codeModeSelect = document.getElementById("codeModeSelect");
+const regexOptionsPanel = document.getElementById("regexOptionsPanel");
+const regexPatternInput = document.getElementById("regexPatternInput");
+const regexReplaceInput = document.getElementById("regexReplaceInput");
+const regexFlagG = document.getElementById("regexFlagG");
+const regexFlagI = document.getElementById("regexFlagI");
+const regexFlagM = document.getElementById("regexFlagM");
+const regexFlagS = document.getElementById("regexFlagS");
+const envComparePanel = document.getElementById("envComparePanel");
+const envLeftArea = document.getElementById("envLeftArea");
+const envRightArea = document.getElementById("envRightArea");
+const envRevealValues = document.getElementById("envRevealValues");
 const textMarkdownMode = document.getElementById("textMarkdownMode");
 const textDedupeLines = document.getElementById("textDedupeLines");
 const textSortLines = document.getElementById("textSortLines");
@@ -74,6 +85,12 @@ const samples = {
   diffLeft: 'function processUser(user) {\n  if (user) {\n    if (user.isActive) {\n      if (user.profile) {\n        return {\n          id: user.id,\n          name: user.profile.name,\n          status: "active"\n        };\n      }\n    }\n  }\n\n  return null;\n}\n\nconst apiUrl = "https://dev-api.example.com";\nconst timeout = 3000;\n\nconsole.log("User processing started");',
   diffRight: 'function processUser(user) {\n  if (!user) return null;\n  if (!user.isActive) return null;\n  if (!user.profile) return null;\n\n  return {\n    id: user.id,\n    name: user.profile.name,\n    status: "active"\n  };\n}\n\nconst apiUrl = "https://prod-api.example.com";\nconst timeout = 5000;\n\nconsole.log("User processing completed");',
   text: '  Incident summary\t\t\n\n\nService  degraded   for 12 minutes.  \n\nAction items:\n\t- rotate token\n\t- review alerts\n',
+  secret: '2026-05-20 ERROR deploy failed AWS_ACCESS_KEY_ID=AKIA1234567890ABCDEF\nAuthorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjMifQ.signature\nDATABASE_URL=postgres://admin:supersecret@db.internal:5432/app\npassword=CorrectHorseBatteryStaple\n-----BEGIN PRIVATE KEY-----',
+  jwt: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEyMyIsIm5hbWUiOiLlpKrlkJ8iLCJpYXQiOjE3MTU5MDQwMDAsImV4cCI6MTg5MzQ1NjAwMH0.signature',
+  regex: '2026-05-20 ERROR request_id=req-123 failed code=500\n2026-05-20 WARN request_id=req-456 slow code=429\n2026-05-20 INFO request_id=req-789 ok code=200',
+  envLeft: 'NODE_ENV=development\nDATABASE_URL=postgres://dev_user:devpass@localhost:5432/app\nJWT_SECRET=dev-secret\nAPI_URL=https://dev-api.example.com\nFEATURE_FLAG=true',
+  envRight: 'NODE_ENV=production\nDATABASE_URL=postgres://prod_user:prodpass@db.internal:5432/app\nJWT_SECRET=prod-secret\nAPI_URL=https://api.example.com\nTIMEOUT=5000',
+  schema: '{"user":{"id":123,"name":"Taro","active":true,"profile":{"age":32,"tags":["admin","dev"],"deletedAt":null}},"items":[{"sku":"A-1","price":1200},{"sku":"B-2","price":990,"discount":true}]}',
 };
 
 const translations = {
@@ -263,6 +280,11 @@ function formatTypeLabel(type) {
       minify: "Minify",
       diff: "Diff",
       text: "Text",
+      secret: "Secret Detector",
+      jwt: "JWT Decoder",
+      regex: "Regex Tester",
+      env: "Env Compare",
+      schema: "JSON Schema",
     },
     ja: {
       empty: "\u7a7a",
@@ -273,6 +295,11 @@ function formatTypeLabel(type) {
       minify: "minify\u30b3\u30fc\u30c9",
       diff: "\u5dee\u5206",
       text: "\u30c6\u30ad\u30b9\u30c8",
+      secret: "\u30b7\u30fc\u30af\u30ec\u30c3\u30c8\u691c\u51fa",
+      jwt: "JWT\u89e3\u6790",
+      regex: "\u6b63\u898f\u8868\u73fe",
+      env: ".env\u6bd4\u8f03",
+      schema: "JSON\u30b9\u30ad\u30fc\u30de",
     },
   };
 
@@ -310,12 +337,27 @@ function getOptions() {
     code: {
       mode: codeModeSelect ? codeModeSelect.value : "readability",
     },
+    regex: {
+      pattern: regexPatternInput ? regexPatternInput.value.trim() : "",
+      replacement: regexReplaceInput ? regexReplaceInput.value : "",
+      flags: [
+        regexFlagG?.checked ? "g" : "",
+        regexFlagI?.checked ? "i" : "",
+        regexFlagM?.checked ? "m" : "",
+        regexFlagS?.checked ? "s" : "",
+      ].join(""),
+    },
+    env: {
+      right: envRightArea ? envRightArea.value : "",
+      revealValues: envRevealValues ? envRevealValues.checked : false,
+    },
   };
 }
 
 export function processInput() {
-  const input = inputArea.value;
   const selectedType = toolSelect.value;
+  const isManualEnv = selectedType === "env";
+  const input = isManualEnv && envLeftArea ? envLeftArea.value : inputArea.value;
   const details = detectDetails(input);
   const type = selectedType === "auto" ? details.type : selectedType;
   const isManualDiff = selectedType === "diff";
@@ -358,9 +400,11 @@ function togglePanels(type, isManualDiff, usesTwoPanelDiff) {
   if (minifyOptionsPanel) minifyOptionsPanel.hidden = type !== "minify";
   if (textOptionsPanel) textOptionsPanel.hidden = type !== "text";
   if (codeOptionsPanel) codeOptionsPanel.hidden = type !== "code";
+  if (regexOptionsPanel) regexOptionsPanel.hidden = type !== "regex";
+  if (envComparePanel) envComparePanel.hidden = type !== "env";
   if (diffModePanel) diffModePanel.hidden = !isManualDiff;
   if (diffComparePanel) diffComparePanel.hidden = !usesTwoPanelDiff;
-  if (inputPanel) inputPanel.hidden = usesTwoPanelDiff;
+  if (inputPanel) inputPanel.hidden = usesTwoPanelDiff || type === "env";
   if (editorGrid) editorGrid.hidden = usesTwoPanelDiff;
   if (editorGrid) editorGrid.classList.toggle("output-only", usesTwoPanelDiff);
   document.body.classList.toggle("diff-dialog-open", usesTwoPanelDiff);
@@ -677,6 +721,17 @@ function fillSample() {
       diffBeforeArea.value = samples.diffLeft;
       diffAfterArea.value = samples.diffRight;
     }
+  } else if (selectedType === "env" && envLeftArea && envRightArea) {
+    envLeftArea.value = samples.envLeft;
+    envRightArea.value = samples.envRight;
+  } else if (selectedType === "regex") {
+    inputArea.value = samples.regex;
+    if (regexPatternInput) regexPatternInput.value = "(ERROR|WARN).*code=(\\d+)";
+    if (regexReplaceInput) regexReplaceInput.value = "$1_CODE_$2";
+    if (regexFlagG) regexFlagG.checked = true;
+    if (regexFlagI) regexFlagI.checked = false;
+    if (regexFlagM) regexFlagM.checked = true;
+    if (regexFlagS) regexFlagS.checked = false;
   } else {
     inputArea.value = samples[selectedType] || samples.text;
   }
@@ -737,6 +792,11 @@ function clearAll() {
   if (diffLeftView) clearElement(diffLeftView);
   if (diffRightView) clearElement(diffRightView);
   if (diffAfterArea) diffAfterArea.value = "";
+  if (envLeftArea) envLeftArea.value = "";
+  if (envRightArea) envRightArea.value = "";
+  if (envRevealValues) envRevealValues.checked = false;
+  if (regexPatternInput) regexPatternInput.value = "";
+  if (regexReplaceInput) regexReplaceInput.value = "";
   if (diffModeSelect) diffModeSelect.value = "compare";
   mergeChoices = {};
   if (logLevelFilter) logLevelFilter.value = "all";
@@ -818,6 +878,8 @@ function autoResizeTextarea(textarea) {
 function autoResizeDiffInputs() {
   autoResizeTextarea(diffBeforeArea);
   autoResizeTextarea(diffAfterArea);
+  autoResizeTextarea(envLeftArea);
+  autoResizeTextarea(envRightArea);
 }
 
 function syncDiffScroll(source) {
@@ -874,6 +936,15 @@ if (diffAfterArea) diffAfterArea.addEventListener("scroll", () => syncDiffScroll
   textMarkdownMode,
   textDedupeLines,
   textSortLines,
+  regexPatternInput,
+  regexReplaceInput,
+  regexFlagG,
+  regexFlagI,
+  regexFlagM,
+  regexFlagS,
+  envLeftArea,
+  envRightArea,
+  envRevealValues,
   diffModeSelect,
   diffBeforeArea,
   diffAfterArea,

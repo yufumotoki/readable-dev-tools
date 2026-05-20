@@ -314,4 +314,79 @@ addMany("text", "text", 5, (index) => ({
   });
 });
 
+[
+  ["secret-new-001", "", ["Findings: 0"]],
+  ["secret-new-002", "plain log line", ["No obvious secrets detected."]],
+  ["secret-new-003", "AWS_ACCESS_KEY_ID=AKIA1234567890ABCDEF", ["AWS Access Key", "AKIA"]],
+  ["secret-new-004", "token=ghp_abcdefghijklmnopqrstuvwxyz123456", ["GitHub Token"]],
+  ["secret-new-005", "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456", ["Bearer Token"]],
+  ["secret-new-006", "jwt=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.signature", ["JWT"]],
+  ["secret-new-007", "password=supersecret", ["Password Assignment"]],
+  ["secret-new-008", "-----BEGIN PRIVATE KEY-----", ["Private Key"]],
+  ["secret-new-009", "DATABASE_URL=postgres://user:pass@db/app\nJWT_SECRET=abc123456789", ["DATABASE_URL", "JWT_SECRET"]],
+  ["secret-new-010", "ERROR 日本語ログ secret=ひみつtoken123", ["Secret Assignment"]],
+].forEach(([id, input, expectedContains]) => {
+  cases.push({ id, tool: "secret", name: id, input, expectedContains, shouldNotContain: ["supersecret\n"], notes: "Secret Detector new feature coverage." });
+});
+
+[
+  ["jwt-new-001", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMiLCJleHAiOjQxMDI0NDQ4MDB9.sig", ["Status: Decoded", "Algorithm: HS256"]],
+  ["jwt-new-002", "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjF9.sig", ["Expired: true"]],
+  ["jwt-new-003", "abc.def", ["Invalid JWT format"]],
+  ["jwt-new-004", "abc..sig", ["Invalid JWT"]],
+  ["jwt-new-005", "not.a.jwt", ["Invalid JWT"]],
+  ["jwt-new-006", "", ["Empty input"]],
+  ["jwt-new-007", "eyJhbGciOiJub25lIn0.eyJzdWIiOiIxIn0.sig", ["Algorithm: none"]],
+  ["jwt-new-008", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.sig", ["exp not present"]],
+  ["jwt-new-009", "eyJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoi5aSq6YOOIn0.sig", ["太郎"]],
+  ["jwt-new-010", "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJhZG1pbiIsImRldiIsIm9wcyJdfQ.sig", ["roles"]],
+].forEach(([id, input, expectedContains]) => {
+  cases.push({ id, tool: "jwt", name: id, input, expectedContains, shouldNotContain: ["TypeError"], notes: "JWT Decoder new feature coverage." });
+});
+
+[
+  ["regex-new-001", "ERROR 500", { pattern: "ERROR\\s+(\\d+)" }, ["Match count: 1", "$1=500"]],
+  ["regex-new-002", "ERROR", { pattern: "[" }, ["Regex error"]],
+  ["regex-new-003", "INFO", { pattern: "ERROR" }, ["No matches."]],
+  ["regex-new-004", "user=42", { pattern: "user=(\\d+)" }, ["Capture groups: $1=42"]],
+  ["regex-new-005", "abc abc", { pattern: "abc", replacement: "x" }, ["x x"]],
+  ["regex-new-006", "a a a", { pattern: "a", flags: "g" }, ["Match count: 3"]],
+  ["regex-new-007", "a\nb", { pattern: "^b", flags: "gm" }, ["Match count: 1"]],
+  ["regex-new-008", "Error", { pattern: "error", flags: "gi" }, ["Match count: 1"]],
+  ["regex-new-009", "日本語ログ", { pattern: "日本語" }, ["[[MATCH:日本語]]"]],
+  ["regex-new-010", "x".repeat(200001), { pattern: "x" }, ["Input too large"]],
+].forEach(([id, input, options, expectedContains]) => {
+  cases.push({ id, tool: "regex", name: id, input, options: { regex: options }, expectedContains, shouldNotContain: ["TypeError"], notes: "Regex Tester new feature coverage." });
+});
+
+[
+  ["env-new-001", "A=1", "A=1", ["Added keys: 0", "Changed values: 0"]],
+  ["env-new-002", "A=1\nB=2", "A=1", ["Missing keys: 1"]],
+  ["env-new-003", "A=1", "A=1\nB=2", ["Added keys: 1"]],
+  ["env-new-004", "A=1", "A=2", ["Changed values: 1"]],
+  ["env-new-005", "EMPTY=", "EMPTY=1", ["Empty values: 1"]],
+  ["env-new-006", "A=1\nA=2", "A=2", ["Duplicate keys: 1"]],
+  ["env-new-007", "JWT_SECRET=abc123456", "JWT_SECRET=def123456", ["Suspicious secret keys: 1", "JWT_SECRET"]],
+  ["env-new-008", "NAME=太郎", "NAME=花子", ["Changed values: 1"]],
+  ["env-new-009", "# comment\nA=1", "A=1", ["Left keys: 1"]],
+  ["env-new-010", "bad line", "A=1", ["Malformed lines:"]],
+].forEach(([id, input, right, expectedContains]) => {
+  cases.push({ id, tool: "env", name: id, input, options: { env: { right } }, expectedContains, shouldNotContain: ["TypeError"], notes: "Env Compare new feature coverage." });
+});
+
+[
+  ["schema-new-001", "{\"a\":\"x\"}", ["\"a\"", "type GeneratedType"]],
+  ["schema-new-002", "{\"a\":{\"b\":1}}", ["\"b\""]],
+  ["schema-new-003", "{\"items\":[1,2]}", ["\"array\""]],
+  ["schema-new-004", "{\"items\":[1,\"x\"]}", ["\"x-itemTypes\""]],
+  ["schema-new-005", "{\"a\":null}", ["\"null\""]],
+  ["schema-new-006", "{\"a\":true}", ["boolean"]],
+  ["schema-new-007", "{\"a\":1.2}", ["number"]],
+  ["schema-new-008", "{\"a\":\"text\"}", ["string"]],
+  ["schema-new-009", "{}", ["Top-level keys: 0"]],
+  ["schema-new-010", "{bad}", ["Invalid JSON"]],
+].forEach(([id, input, expectedContains]) => {
+  cases.push({ id, tool: "schema", name: id, input, expectedContains, shouldNotContain: ["TypeError"], notes: "JSON Schema Generator new feature coverage." });
+});
+
 export const testCases = cases;

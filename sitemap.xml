@@ -28,4 +28,19 @@
   <url>
     <loc>https://readable-dev-tools.pages.dev/code-refactor.html</loc>
   </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/secret-detector.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/jwt-decoder.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/regex-tester.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/env-compare.html</loc>
+  </url>
+  <url>
+    <loc>https://readable-dev-tools.pages.dev/json-schema-generator.html</loc>
+  </url>
 </urlset>
